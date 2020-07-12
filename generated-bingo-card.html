@@ -38,14 +38,14 @@
           background: #A000C0;
         }
         .border-default-p1:hover {
-          background-color: #C020E0;
+          opacity: 0.75;
         }
 
         .border-default-p2 {
           background: #00C020;
         }
         .border-default-p2:hover {
-          background-color: #20E040;
+          opacity: 0.75;
         }
 
         .border-required-p1 {
@@ -83,6 +83,7 @@
           place-items:center;
           text-align: center;
           color: #C0A000;
+          user-select: none;
         }
 
         .tile-captured-p1 {
@@ -97,15 +98,15 @@
       </style>
 
       <script>
-        const ClickType = { NORMAL : "0", ALT : "1", CONTROL : "2" };
+        const ClickType = { NORMAL : "0", SHIFT : "1", CONTROL : "2" };
         Object.freeze(ClickType);
 
         const PlayerType = { NONE : "0", P1 : "1", P2 : "2" };
         Object.freeze(PlayerType);
 
-        const Player1Colors = { DEFAULT : "#000000", HIGHLIGHT : "#C020E0" };
+        const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(192, 32, 224, 0.75)" };
         Object.freeze(Player1Colors);
-        const Player2Colors = { DEFAULT : "#000000", HIGHLIGHT : "#20E040" };
+        const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(32, 224, 64, 0.75)" };
         Object.freeze(Player2Colors);
 
         const PlayerTileStates = { GOAL_NOT_MET : "0", GOAL_MET : "1", GOAL_CANNOT_BE_MET_ANYMORE : "2" };
@@ -119,8 +120,8 @@
             return ClickType.CONTROL;
           }
 
-          if (event.altKey) {
-            return ClickType.ALT;
+          if (event.shiftKey) {
+            return ClickType.SHIFT;
           }
 
           return ClickType.NORMAL;
@@ -214,7 +215,7 @@
                 svgHref.value = (player1 ? "#p1-goal-met" : "#p2-goal-met");
               }
             break;
-            case ClickType.ALT:
+            case ClickType.SHIFT:
               if (state.value == PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE) {
                 state.value = PlayerTileStates.GOAL_NOT_MET;
                 svgHref.value = "#empty";
@@ -230,8 +231,8 @@
         function mouseBingoTile(element, event) {
           var playerType = classifyPlayer(element, event);
 
-          var colorP1 = "#000000";
-          var colorP2 = "#000000";
+          var colorP1 = Player1Colors.DEFAULT;
+          var colorP2 = Player2Colors.DEFAULT;
 
           if (playerType == PlayerType.P1) {
             colorP1 = Player1Colors.HIGHLIGHT;
@@ -259,7 +260,7 @@
 
     <table>
       <tr>
-          <th id="border-6" class="border-diagonal-p1 border-default-p1" title="TL-BR" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-6" class="border-diagonal-p1 border-default-p1" title="P1 TL-BR" onclick="clickBorderTile(this, 'p1')">
             <form id="form" class="not-visible">
               <input id="required" type="hidden" value="0" />
             </form>
@@ -289,7 +290,7 @@
               <input id="required" type="hidden" value="0" />
             </form>
           </th>
-          <th id="border-12" class="border-diagonal-p2 border-default-p2" title="TR-BL" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-12" class="border-diagonal-p2 border-default-p2" title="P2 TR-BL" onclick="clickBorderTile(this, 'p2')">
             <form id="form" class="not-visible">
               <input id="required" type="hidden" value="0" />
             </form>
@@ -781,7 +782,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-0" class="border-diagonal-p1 border-default-p1" title="TR-BL" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-0" class="border-diagonal-p1 border-default-p1" title="P1 TR-BL" onclick="clickBorderTile(this, 'p1')">
             <form id="form" class="not-visible">
               <input id="required" type="hidden" value="0" />
             </form>
@@ -811,7 +812,7 @@
               <input id="required" type="hidden" value="0" />
             </form>
           </th>
-          <th id="border-18" class="border-diagonal-p2 border-default-p2" title="TL-BR" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-18" class="border-diagonal-p2 border-default-p2" title="P2 TL-BR" onclick="clickBorderTile(this, 'p2')">
             <form id="form" class="not-visible">
               <input id="required" type="hidden" value="0" />
             </form>
@@ -820,4 +821,3 @@
     </table>
   </body>
 </html>
-

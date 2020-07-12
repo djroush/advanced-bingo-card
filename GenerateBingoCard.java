@@ -12,9 +12,10 @@ public class GenerateBingoCard {
   private static final long COLOR_RESTRICTED = 0xE02040;
   private static final long COLOR_TEXT = 0xC0A000;
 
-  private static final PlayerColors P1 = new PlayerColors(0xA000C0, 0xC020E0, 0xA000C0);
-  private static final PlayerColors P2 = new PlayerColors(0x00C020, 0x20E040, 0x00C020);
+  private static final PlayerColors P1 = new PlayerColors(0xA000C0, 0xC020E0);
+  private static final PlayerColors P2 = new PlayerColors(0x00C020, 0x20E040);
 
+  private static final String HIGHLIGHT_OPACITY = "0.75";
   private static final String STYLE_INDENT = "        ";
   private static final String SCRIPT_INDENT = "        ";
 
@@ -39,7 +40,7 @@ public class GenerateBingoCard {
     htmlOutput.append("  </body>\n");
     htmlOutput.append("</html>\n");
 
-    System.out.println(htmlOutput.toString());
+    System.out.print(htmlOutput.toString());
   }
 
   private static void generateCss(StringBuffer htmlOutput) {
@@ -65,10 +66,8 @@ public class GenerateBingoCard {
     generateBorderTileRows(htmlOutput);
     htmlOutput.append("\n");
     generateBorderTileRequired(htmlOutput);
-
   }
   private static void generateBingoTileCss(StringBuffer htmlOutput) {
-
     htmlOutput.append(STYLE_INDENT + ".bingo-tile {\n");
     htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_SIZE + "px;\n");
     htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_SIZE + "px;\n");
@@ -89,15 +88,16 @@ public class GenerateBingoCard {
     htmlOutput.append(STYLE_INDENT + "  place-items:center;\n");
     htmlOutput.append(STYLE_INDENT + "  text-align: center;\n");
     htmlOutput.append(STYLE_INDENT + "  color: #" + String.format("%06X", COLOR_TEXT) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  user-select: none;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append("\n");
 
     htmlOutput.append(STYLE_INDENT + ".tile-captured-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P1.getBingoTileColorDefault()) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P1.getColorDefault()) + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
 
     htmlOutput.append(STYLE_INDENT + ".tile-captured-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P2.getBingoTileColorDefault()) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P2.getColorDefault()) + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
 
     htmlOutput.append(STYLE_INDENT + ".tile-restricted {\n");
@@ -138,41 +138,41 @@ public class GenerateBingoCard {
 
   private static void generateBorderTileRequired(StringBuffer htmlOutput) {
     htmlOutput.append(STYLE_INDENT + ".border-default-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P1.getBorderColorDefault()));
+    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P1.getColorDefault()));
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".border-default-p1:hover {\n");
-    htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", P1.getBorderColorHighlight()) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  opacity: " + HIGHLIGHT_OPACITY + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
 
     htmlOutput.append("\n");
 
     htmlOutput.append(STYLE_INDENT + ".border-default-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P2.getBorderColorDefault()));
+    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P2.getColorDefault()));
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".border-default-p2:hover {\n");
-    htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", P2.getBorderColorHighlight()) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  opacity: " + HIGHLIGHT_OPACITY + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
 
     htmlOutput.append("\n");
 
     htmlOutput.append(STYLE_INDENT + ".border-required-p1 {\n");
     htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_BACKGROUND, COLOR_BACKGROUND, P1.getBorderColorDefault(), COLOR_BACKGROUND, COLOR_BACKGROUND));
+      COLOR_BACKGROUND, COLOR_BACKGROUND, P1.getColorDefault(), COLOR_BACKGROUND, COLOR_BACKGROUND));
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".border-required-p1:hover {\n");
     htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_BACKGROUND, COLOR_BACKGROUND, P1.getBorderColorHighlight(), COLOR_BACKGROUND, COLOR_BACKGROUND));
+      COLOR_BACKGROUND, COLOR_BACKGROUND, P1.getColorHighlight(), COLOR_BACKGROUND, COLOR_BACKGROUND));
     htmlOutput.append(STYLE_INDENT + "}\n");
 
     htmlOutput.append("\n");
 
     htmlOutput.append(STYLE_INDENT + ".border-required-p2 {\n");
     htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_BACKGROUND, COLOR_BACKGROUND, P2.getBorderColorDefault(), COLOR_BACKGROUND, COLOR_BACKGROUND));
+      COLOR_BACKGROUND, COLOR_BACKGROUND, P2.getColorDefault(), COLOR_BACKGROUND, COLOR_BACKGROUND));
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".border-required-p2:hover {\n");
     htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_BACKGROUND, COLOR_BACKGROUND, P2.getBorderColorHighlight(), COLOR_BACKGROUND, COLOR_BACKGROUND));
+      COLOR_BACKGROUND, COLOR_BACKGROUND, P2.getColorHighlight(), COLOR_BACKGROUND, COLOR_BACKGROUND));
     htmlOutput.append(STYLE_INDENT + "}\n");
 /*
     htmlOutput.append("\n");
@@ -201,24 +201,35 @@ public class GenerateBingoCard {
   }
 
   private static void generateJsConstants(StringBuffer htmlOutput) {
-    htmlOutput.append(SCRIPT_INDENT + "const ClickType = { NORMAL : \"0\", ALT : \"1\", CONTROL : \"2\" };\n");
+    final String DEFAULT = getRgba(COLOR_BINGO_TILE_DEFAULT, "1");
+    final String P1_HIGHLIGHT = getRgba(P1.getColorHighlight(), HIGHLIGHT_OPACITY);
+    final String P2_HIGHLIGHT = getRgba(P2.getColorHighlight(), HIGHLIGHT_OPACITY);
+    final String P1_COLORS = String.format("const Player1Colors = { DEFAULT : \"%s\", HIGHLIGHT : \"%s\" };\n", DEFAULT, P1_HIGHLIGHT);
+    final String P2_COLORS = String.format("const Player2Colors = { DEFAULT : \"%s\", HIGHLIGHT : \"%s\" };\n", DEFAULT, P2_HIGHLIGHT);
+
+    htmlOutput.append(SCRIPT_INDENT + "const ClickType = { NORMAL : \"0\", SHIFT : \"1\", CONTROL : \"2\" };\n");
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(ClickType);\n");
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "const PlayerType = { NONE : \"0\", P1 : \"1\", P2 : \"2\" };\n");
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(PlayerType);\n");
     htmlOutput.append("\n");
-
-    htmlOutput.append(SCRIPT_INDENT + "const Player1Colors = { DEFAULT : \"#000000\", HIGHLIGHT : \"#C020E0\" };\n");
+    htmlOutput.append(SCRIPT_INDENT + P1_COLORS);
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(Player1Colors);\n");
-    htmlOutput.append(SCRIPT_INDENT + "const Player2Colors = { DEFAULT : \"#000000\", HIGHLIGHT : \"#20E040\" };\n");
+    htmlOutput.append(SCRIPT_INDENT + P2_COLORS);
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(Player2Colors);\n");
     htmlOutput.append("\n");
-
     htmlOutput.append(SCRIPT_INDENT + "const PlayerTileStates = { GOAL_NOT_MET : \"0\", GOAL_MET : \"1\", GOAL_CANNOT_BE_MET_ANYMORE : \"2\" };\n");
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(PlayerTileStates);\n");
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "const PlayerBorderStates = { BINGO_UNCLAIMED : \"0\", BINGO_REQUIRED : \"1\", BINGO_CANNOT_HAPPEN_ANYMORE : \"2\" };\n");
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(PlayerBorderStates);\n");
+  }
+  private static String getRgba(long rgb, String alpha) {
+    int r = (int)((rgb & 0xFF0000) >> 16);
+    int g = (int)((rgb & 0x00FF00) >> 8);
+    int b = (int)((rgb & 0x0000FF));
+
+    return String.format("rgba(%d, %d, %d, %s)", r, g, b, alpha);
   }
 
   private static void generateJsFunctionClickType(StringBuffer htmlOutput) {
@@ -227,8 +238,8 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "    return ClickType.CONTROL;\n");
     htmlOutput.append(SCRIPT_INDENT + "  }\n");
     htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + "  if (event.altKey) {\n");
-    htmlOutput.append(SCRIPT_INDENT + "    return ClickType.ALT;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (event.shiftKey) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    return ClickType.SHIFT;\n");
     htmlOutput.append(SCRIPT_INDENT + "  }\n");
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "  return ClickType.NORMAL;\n");
@@ -330,7 +341,7 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "        svgHref.value = (player1 ? \"#p1-goal-met\" : \"#p2-goal-met\");\n");
     htmlOutput.append(SCRIPT_INDENT + "      }\n");
     htmlOutput.append(SCRIPT_INDENT + "    break;\n");
-    htmlOutput.append(SCRIPT_INDENT + "    case ClickType.ALT:\n");
+    htmlOutput.append(SCRIPT_INDENT + "    case ClickType.SHIFT:\n");
     htmlOutput.append(SCRIPT_INDENT + "      if (state.value == PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE) {\n");
     htmlOutput.append(SCRIPT_INDENT + "        state.value = PlayerTileStates.GOAL_NOT_MET;\n");
     htmlOutput.append(SCRIPT_INDENT + "        svgHref.value = \"#empty\";\n");
@@ -348,8 +359,8 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "function mouseBingoTile(element, event) {\n");
     htmlOutput.append(SCRIPT_INDENT + "  var playerType = classifyPlayer(element, event);\n");
     htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + "  var colorP1 = \"#" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + "\";\n");
-    htmlOutput.append(SCRIPT_INDENT + "  var colorP2 = \"#" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + "\";\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var colorP1 = Player1Colors.DEFAULT;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var colorP2 = Player2Colors.DEFAULT;\n");
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "  if (playerType == PlayerType.P1) {\n");
     htmlOutput.append(SCRIPT_INDENT + "    colorP1 = Player1Colors.HIGHLIGHT;\n");
@@ -404,7 +415,8 @@ public class GenerateBingoCard {
 
     if (isRowBorder) {
       if (isColumnBorder) {
-        String title = ((row == col) ? "TL-BR" : "TR-BL");
+        String title = "P" + player + " ";
+        title += ((row == col) ? "TL-BR" : "TR-BL");
         generateBorderTile(htmlOutput, borderId, "diagonal", player, title);
       } else {
         String title = "P" + player + " C" + col;
@@ -482,24 +494,19 @@ public class GenerateBingoCard {
   }
 
   private static class PlayerColors {
-    private long borderColorDefault;
-    private long borderColorHighlight;
-    private long bingoTileColorDefault;
+    private long colorDefault;
+    private long colorHighlight;
 
-    PlayerColors(long borderColorDefault, long borderColorHighlight, long bingoTileColorDefault) {
-      this.borderColorDefault = borderColorDefault;
-      this.borderColorHighlight = borderColorHighlight;
-      this.bingoTileColorDefault = bingoTileColorDefault;
+    PlayerColors(long colorDefault, long colorHighlight) {
+      this.colorDefault = colorDefault;
+      this.colorHighlight = colorHighlight;
     }
 
-    long getBorderColorDefault() {
-      return this.borderColorDefault;
+    long getColorDefault() {
+      return this.colorDefault;
     }
-    long getBorderColorHighlight() {
-      return this.borderColorHighlight;
-    }
-    long getBingoTileColorDefault() {
-      return this.bingoTileColorDefault;
+    long getColorHighlight() {
+      return this.colorHighlight; // still in use by borders when bingo row/column/diagonal is required
     }
   }
 }
