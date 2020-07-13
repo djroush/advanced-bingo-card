@@ -55,6 +55,9 @@ public class GenerateBingoCard {
     htmlOutput.append("      </style>\n");
   }
   private static void generateCommonCss(StringBuffer htmlOutput) {
+    htmlOutput.append(STYLE_INDENT + ".child-div {\n");
+    htmlOutput.append(STYLE_INDENT + "  position: absolute;\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".not-visible {\n");
     htmlOutput.append(STYLE_INDENT + "  display: none;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
@@ -138,9 +141,6 @@ public class GenerateBingoCard {
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".bingo-tile-background {\n");
     htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + ";\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".bingo-tile-child-div {\n");
-    htmlOutput.append(STYLE_INDENT + "  position: absolute;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".bingo-tile-text {\n");
     htmlOutput.append(STYLE_INDENT + "  color: #" + String.format("%06X", COLOR_TEXT) + ";\n");
@@ -433,8 +433,8 @@ public class GenerateBingoCard {
     String th = String.format("<th id=\"border-%d\" class=\"border-%s border-default-p%c\" title=\"%s\" onclick=\"clickBorderTile(this, 'p%c')\">\n",
       borderId, borderType, player, title, player);
     String parentDiv = String.format("  <div id=\"parent-div\" class=\"border-%s\">\n", borderType);
-    String stateDiv = String.format("    <div id=\"state-div\"  class=\"border-%s bingo-tile-child-div\">\n", borderType);
-    String outlinesDiv = String.format("    <div id=\"outlines-div\" class=\"border-%s bingo-tile-child-div\">\n", borderType);
+    String stateDiv = String.format("    <div id=\"state-div\"  class=\"border-%s child-div\">\n", borderType);
+    String outlinesDiv = String.format("    <div id=\"outlines-div\" class=\"border-%s child-div\">\n", borderType);
 
     final String INDENT = "          ";
     htmlOutput.append(INDENT + th);
@@ -457,18 +457,18 @@ public class GenerateBingoCard {
   private static void generateBingoTile(StringBuffer htmlOutput, int row, int col) {
     String td = String.format("<td id=\"r%d-c%d\" class=\"bingo-tile bingo-tile-background\" onclick=\"clickBingoTile(this, event)\" onmouseenter=\"mouseBingoTile(this, event)\" onmousemove=\"mouseBingoTile(this, event)\" onmouseleave=\"mouseBingoTile(this, event)\">\n", row, col);
     String svg = String.format("      <svg id=\"outlines\" width=\"%dpx\" height=\"%dpx\">\n", TILE_CELL_SIZE, TILE_CELL_SIZE);
-    String text = String.format("    <div id=\"text-div\" class=\"bingo-tile bingo-tile-child-div bingo-tile-text\">R%d C%d</div>\n", row, col);
+    String text = String.format("    <div id=\"text-div\" class=\"bingo-tile child-div bingo-tile-text\">R%d C%d</div>\n", row, col);
 
     final String INDENT = "          ";
     htmlOutput.append(INDENT + td);
     htmlOutput.append(INDENT + "  <div id=\"parent-div\" class=\"bingo-tile\">\n");
-    htmlOutput.append(INDENT + "    <div id=\"state-div\"  class=\"bingo-tile bingo-tile-child-div\">\n");
+    htmlOutput.append(INDENT + "    <div id=\"state-div\"  class=\"bingo-tile child-div\">\n");
     htmlOutput.append(INDENT + "      <form id=\"form\"  class=\"not-visible\">\n");
     htmlOutput.append(INDENT + "        <input id=\"player1\" type=\"hidden\" value=\"0\" />\n");
     htmlOutput.append(INDENT + "        <input id=\"player2\" type=\"hidden\" value=\"0\" />\n");
     htmlOutput.append(INDENT + "      </form>\n");
     htmlOutput.append(INDENT + "    </div>\n");
-    htmlOutput.append(INDENT + "    <div id=\"outlines-div\" class=\"bingo-tile bingo-tile-child-div\">\n");
+    htmlOutput.append(INDENT + "    <div id=\"outlines-div\" class=\"bingo-tile child-div\">\n");
     htmlOutput.append(INDENT + svg);
     htmlOutput.append(INDENT + "        <use id=\"player1\" href=\"#empty\" />\n");
     htmlOutput.append(INDENT + "        <use id=\"player2\" href=\"#empty\" />\n");
