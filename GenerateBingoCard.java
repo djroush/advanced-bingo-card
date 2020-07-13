@@ -436,6 +436,15 @@ public class GenerateBingoCard {
     String stateDiv = String.format("    <div id=\"state-div\"  class=\"border-%s child-div\">\n", borderType);
     String outlinesDiv = String.format("    <div id=\"outlines-div\" class=\"border-%s child-div\">\n", borderType);
 
+    int width = BORDER_CELL_SIZE;
+    int height = BORDER_CELL_SIZE;
+    if ("column".equals(borderType)) {
+      width = TILE_CELL_SIZE;
+    } else if ("row".equals(borderType)) {
+      height = TILE_CELL_SIZE;
+    }
+    String svg = String.format("      <svg id=\"outlines\" width=\"%dpx\" height=\"%dpx\">\n", width, height);
+
     final String INDENT = "          ";
     htmlOutput.append(INDENT + th);
     htmlOutput.append(INDENT + parentDiv);
@@ -446,7 +455,7 @@ public class GenerateBingoCard {
     htmlOutput.append(INDENT + "      </form>\n");
     htmlOutput.append(INDENT + "    </div>\n");
     htmlOutput.append(INDENT + outlinesDiv);
-    htmlOutput.append(INDENT + "      <svg id=\"outline\">\n");
+    htmlOutput.append(INDENT + svg);
     htmlOutput.append(INDENT + "        <use id=\"player\" href=\"#empty\" />\n");
     htmlOutput.append(INDENT + "      </svg>\n");
     htmlOutput.append(INDENT + "    </div>\n");
@@ -455,11 +464,14 @@ public class GenerateBingoCard {
   }
 
   private static void generateBingoTile(StringBuffer htmlOutput, int row, int col) {
-    String td = String.format("<td id=\"r%d-c%d\" class=\"bingo-tile bingo-tile-background\" onclick=\"clickBingoTile(this, event)\" onmouseenter=\"mouseBingoTile(this, event)\" onmousemove=\"mouseBingoTile(this, event)\" onmouseleave=\"mouseBingoTile(this, event)\">\n", row, col);
+    String rowAndColumn = String.format("<!-- r%d-c%d -->\n", row, col);
+    int tileNumber = (BINGO_SIZE * (row - 1)) + (col - 1);
+    String td = String.format(" <td id=\"tile-%d\" class=\"bingo-tile bingo-tile-background\" onclick=\"clickBingoTile(this, event)\" onmouseenter=\"mouseBingoTile(this, event)\" onmousemove=\"mouseBingoTile(this, event)\" onmouseleave=\"mouseBingoTile(this, event)\">\n", tileNumber);
     String svg = String.format("      <svg id=\"outlines\" width=\"%dpx\" height=\"%dpx\">\n", TILE_CELL_SIZE, TILE_CELL_SIZE);
     String text = String.format("    <div id=\"text-div\" class=\"bingo-tile child-div bingo-tile-text\">R%d C%d</div>\n", row, col);
 
     final String INDENT = "          ";
+    htmlOutput.append(INDENT + rowAndColumn);
     htmlOutput.append(INDENT + td);
     htmlOutput.append(INDENT + "  <div id=\"parent-div\" class=\"bingo-tile\">\n");
     htmlOutput.append(INDENT + "    <div id=\"state-div\"  class=\"bingo-tile child-div\">\n");
