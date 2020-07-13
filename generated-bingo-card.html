@@ -6,30 +6,31 @@
         .not-visible {
           display: none;
         }
+        .outline {
+          fill-opacity: 0.0;
+          stroke-opacity: 1.0;
+          stroke-width: 4;
+        }
 
-        .border-column-p1 {
+        .captured-p1 {
+          stroke: #A000C0;
+        }
+        .captured-p2 {
+          stroke: #00C020;
+        }
+        .restricted {
+          stroke: #E02040;
+        }
+
+        .border-column {
           height: 24px;
           width: 96px;
         }
-        .border-column-p2 {
-          height: 24px;
-          width: 96px;
-        }
-
-        .border-diagonal-p1 {
+        .border-diagonal {
           height: 24px;
           width: 24px;
         }
-        .border-diagonal-p2 {
-          height: 24px;
-          width: 24px;
-        }
-
-        .border-row-p1 {
-          height: 96px;
-          width: 24px;
-        }
-        .border-row-p2 {
+        .border-row {
           height: 96px;
           width: 24px;
         }
@@ -62,7 +63,6 @@
           background: radial-gradient(circle at center, #5F5F5F 0px, #5F5F5F 4px, #20E040 7px, #5F5F5F 10px, #5F5F5F 100%);
         }
 
-
         .bingo-tile {
           height: 96px;
           width: 96px;
@@ -73,27 +73,12 @@
         .bingo-tile-child-div {
           position: absolute;
         }
-        .bingo-tile-indicator {
-          fill-opacity: 0.0;
-          stroke-opacity: 1.0;
-          stroke-width: 4;
-        }
         .bingo-tile-text {
+          color: #C0A000;
           display: grid;
           place-items:center;
           text-align: center;
-          color: #C0A000;
           user-select: none;
-        }
-
-        .tile-captured-p1 {
-          stroke: #A000C0;
-        }
-        .tile-captured-p2 {
-          stroke: #00C020;
-        }
-        .tile-restricted {
-          stroke: #E02040;
         }
       </style>
 
@@ -147,8 +132,10 @@
 
         function clickBorderTile(element, player) {
           var classList = element.classList;
+          var parentDiv = element.children.namedItem("parent-div");
 
-          var form = element.children.namedItem("form");
+          var stateDiv = parentDiv.children.namedItem("state-div");
+          var form = stateDiv.children.namedItem("form");
           var required = form.elements["required"];
 
           if (required.value == "0") {
@@ -250,57 +237,141 @@
       <defs>
         <polygon id="empty" points="" />
 
-        <polygon id="p1-goal-met" class="bingo-tile bingo-tile-indicator tile-captured-p1" points="2,2 92,2, 2,92" />
-        <polygon id="p1-goal-cannot-be-met" class="bingo-tile bingo-tile-indicator tile-restricted" points="2,2, 92,2, 2,92, 2,2 46,46" />
+        <polygon id="column" class="border-column outline" points="2,2 94,2 94,22, 2,22" />
+        <polygon id="diagonal" class="border-diagonal outline" points="2,2 22,2 22,22, 2,22" />
+        <polygon id="row" class="border-row outline" points="2,2 22,2 22,94, 2,94" />
 
-        <polygon id="p2-goal-met" class="bingo-tile bingo-tile-indicator tile-captured-p2" points="94,94, 6,94 94,6" />
-        <polygon id="p2-goal-cannot-be-met" class="bingo-tile bingo-tile-indicator tile-restricted" points="94,94, 6,94 94,6, 94,94, 50,50" />
+        <polygon id="p1-goal-met" class="bingo-tile outline captured-p1" points="2,2 92,2, 2,92" />
+        <polygon id="p1-goal-cannot-be-met" class="bingo-tile outline restricted" points="2,2, 92,2, 2,92, 2,2 46,46" />
+
+        <polygon id="p2-goal-met" class="bingo-tile outline captured-p2" points="94,94, 6,94 94,6" />
+        <polygon id="p2-goal-cannot-be-met" class="bingo-tile outline restricted" points="94,94, 6,94 94,6, 94,94, 50,50" />
       </defs>
     </svg>
 
     <table>
       <tr>
-          <th id="border-6" class="border-diagonal-p1 border-default-p1" title="P1 TL-BR" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-6" class="border-diagonal border-default-p1" title="P1 TL-BR" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-diagonal">
+              <div id="state-div"  class="border-diagonal bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-diagonal bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-7" class="border-column-p1 border-default-p1" title="P1 C1" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-7" class="border-column border-default-p1" title="P1 C1" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-8" class="border-column-p1 border-default-p1" title="P1 C2" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-8" class="border-column border-default-p1" title="P1 C2" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-9" class="border-column-p1 border-default-p1" title="P1 C3" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-9" class="border-column border-default-p1" title="P1 C3" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-10" class="border-column-p1 border-default-p1" title="P1 C4" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-10" class="border-column border-default-p1" title="P1 C4" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-11" class="border-column-p1 border-default-p1" title="P1 C5" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-11" class="border-column border-default-p1" title="P1 C5" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-12" class="border-diagonal-p2 border-default-p2" title="P2 TR-BL" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-12" class="border-diagonal border-default-p2" title="P2 TR-BL" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-diagonal">
+              <div id="state-div"  class="border-diagonal bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-diagonal bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
       </tr>
       <tr>
-          <th id="border-5" class="border-row-p1 border-default-p1" title="P1 R1" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-5" class="border-row border-default-p1" title="P1 R1" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
           <td id="r1-c1" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
@@ -387,17 +458,37 @@
               <div id="text-div" class="bingo-tile bingo-tile-child-div bingo-tile-text">R1 C5</div>
             </div>
           </td>
-          <th id="border-13" class="border-row-p2 border-default-p2" title="P2 R1" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-13" class="border-row border-default-p2" title="P2 R1" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
       </tr>
       <tr>
-          <th id="border-4" class="border-row-p1 border-default-p1" title="P1 R2" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-4" class="border-row border-default-p1" title="P1 R2" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
           <td id="r2-c1" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
@@ -484,17 +575,37 @@
               <div id="text-div" class="bingo-tile bingo-tile-child-div bingo-tile-text">R2 C5</div>
             </div>
           </td>
-          <th id="border-14" class="border-row-p2 border-default-p2" title="P2 R2" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-14" class="border-row border-default-p2" title="P2 R2" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
       </tr>
       <tr>
-          <th id="border-3" class="border-row-p1 border-default-p1" title="P1 R3" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-3" class="border-row border-default-p1" title="P1 R3" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
           <td id="r3-c1" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
@@ -581,17 +692,37 @@
               <div id="text-div" class="bingo-tile bingo-tile-child-div bingo-tile-text">R3 C5</div>
             </div>
           </td>
-          <th id="border-15" class="border-row-p2 border-default-p2" title="P2 R3" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-15" class="border-row border-default-p2" title="P2 R3" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
       </tr>
       <tr>
-          <th id="border-2" class="border-row-p1 border-default-p1" title="P1 R4" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-2" class="border-row border-default-p1" title="P1 R4" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
           <td id="r4-c1" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
@@ -678,17 +809,37 @@
               <div id="text-div" class="bingo-tile bingo-tile-child-div bingo-tile-text">R4 C5</div>
             </div>
           </td>
-          <th id="border-16" class="border-row-p2 border-default-p2" title="P2 R4" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-16" class="border-row border-default-p2" title="P2 R4" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
       </tr>
       <tr>
-          <th id="border-1" class="border-row-p1 border-default-p1" title="P1 R5" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-1" class="border-row border-default-p1" title="P1 R5" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
           <td id="r5-c1" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
@@ -775,47 +926,127 @@
               <div id="text-div" class="bingo-tile bingo-tile-child-div bingo-tile-text">R5 C5</div>
             </div>
           </td>
-          <th id="border-17" class="border-row-p2 border-default-p2" title="P2 R5" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-17" class="border-row border-default-p2" title="P2 R5" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-row">
+              <div id="state-div"  class="border-row bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-row bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
       </tr>
       <tr>
-          <th id="border-0" class="border-diagonal-p1 border-default-p1" title="P1 TR-BL" onclick="clickBorderTile(this, 'p1')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-0" class="border-diagonal border-default-p1" title="P1 TR-BL" onclick="clickBorderTile(this, 'p1')">
+            <div id="parent-div" class="border-diagonal">
+              <div id="state-div"  class="border-diagonal bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-diagonal bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-23" class="border-column-p2 border-default-p2" title="P2 C1" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-23" class="border-column border-default-p2" title="P2 C1" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-22" class="border-column-p2 border-default-p2" title="P2 C2" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-22" class="border-column border-default-p2" title="P2 C2" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-21" class="border-column-p2 border-default-p2" title="P2 C3" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-21" class="border-column border-default-p2" title="P2 C3" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-20" class="border-column-p2 border-default-p2" title="P2 C4" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-20" class="border-column border-default-p2" title="P2 C4" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-19" class="border-column-p2 border-default-p2" title="P2 C5" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-19" class="border-column border-default-p2" title="P2 C5" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-column">
+              <div id="state-div"  class="border-column bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-column bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
-          <th id="border-18" class="border-diagonal-p2 border-default-p2" title="P2 TL-BR" onclick="clickBorderTile(this, 'p2')">
-            <form id="form" class="not-visible">
-              <input id="required" type="hidden" value="0" />
-            </form>
+          <th id="border-18" class="border-diagonal border-default-p2" title="P2 TL-BR" onclick="clickBorderTile(this, 'p2')">
+            <div id="parent-div" class="border-diagonal">
+              <div id="state-div"  class="border-diagonal bingo-tile-child-div">
+                <form id="form"  class="not-visible">
+                  <input id="player" type="hidden" value="0" />
+                  <input id="required" type="hidden" value="0" />
+                </form>
+              </div>
+              <div id="outlines-div" class="border-diagonal bingo-tile-child-div">
+                <svg id="outline">
+                  <use id="player" href="#empty" />
+                </svg>
+              </div>
+            </div>
           </th>
       </tr>
     </table>

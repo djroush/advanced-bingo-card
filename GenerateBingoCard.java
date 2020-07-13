@@ -8,7 +8,7 @@ public class GenerateBingoCard {
   private static final int TILE_CELL_SIZE = 4 * BORDER_CELL_SIZE;
 
   private static final long COLOR_BINGO_TILE_DEFAULT = 0x000000;
-  private static final long COLOR_BACKGROUND = 0x5F5F5F;
+  private static final long COLOR_REQUIRED = 0x5F5F5F;
   private static final long COLOR_RESTRICTED = 0xE02040;
   private static final long COLOR_TEXT = 0xC0A000;
 
@@ -46,27 +46,91 @@ public class GenerateBingoCard {
   private static void generateCss(StringBuffer htmlOutput) {
     htmlOutput.append("      <style>\n");
 
-    htmlOutput.append(STYLE_INDENT + ".not-visible {\n");
-    htmlOutput.append(STYLE_INDENT + "  display: none;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
+    generateCommonCss(htmlOutput);
     htmlOutput.append("\n");
-
     generateBorderTileCss(htmlOutput);
-    htmlOutput.append("\n");
     htmlOutput.append("\n");
     generateBingoTileCss(htmlOutput);
 
     htmlOutput.append("      </style>\n");
   }
-  private static void generateBorderTileCss(StringBuffer htmlOutput) {
-    generateBorderTileColumns(htmlOutput);
+  private static void generateCommonCss(StringBuffer htmlOutput) {
+    htmlOutput.append(STYLE_INDENT + ".not-visible {\n");
+    htmlOutput.append(STYLE_INDENT + "  display: none;\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".outline {\n");
+    htmlOutput.append(STYLE_INDENT + "  fill-opacity: 0.0;\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke-opacity: 1.0;\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke-width: 4;\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append("\n");
-    generateBorderTileDiagonals(htmlOutput);
-    htmlOutput.append("\n");
-    generateBorderTileRows(htmlOutput);
-    htmlOutput.append("\n");
-    generateBorderTileRequired(htmlOutput);
+    htmlOutput.append(STYLE_INDENT + ".captured-p1 {\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P1.getColorDefault()) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".captured-p2 {\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P2.getColorDefault()) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".restricted {\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", COLOR_RESTRICTED) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
   }
+
+  private static void generateBorderTileCss(StringBuffer htmlOutput) {
+    generateBorderTileDefinitions(htmlOutput);
+    htmlOutput.append("\n");
+    generateBorderTilePlayersDefault(htmlOutput);
+    htmlOutput.append("\n");
+    generateBorderTilePlayersRequired(htmlOutput);
+  }
+  private static void generateBorderTileDefinitions(StringBuffer htmlOutput) {
+    htmlOutput.append(STYLE_INDENT + ".border-column {\n");
+    htmlOutput.append(STYLE_INDENT + "  height: " + BORDER_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".border-diagonal {\n");
+    htmlOutput.append(STYLE_INDENT + "  height: " + BORDER_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  width: " + BORDER_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".border-row {\n");
+    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  width: " + BORDER_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+  }
+  private static void generateBorderTilePlayersDefault(StringBuffer htmlOutput) {
+    htmlOutput.append(STYLE_INDENT + ".border-default-p1 {\n");
+    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P1.getColorDefault()));
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".border-default-p1:hover {\n");
+    htmlOutput.append(STYLE_INDENT + "  opacity: " + HIGHLIGHT_OPACITY + ";\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(STYLE_INDENT + ".border-default-p2 {\n");
+    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P2.getColorDefault()));
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".border-default-p2:hover {\n");
+    htmlOutput.append(STYLE_INDENT + "  opacity: " + HIGHLIGHT_OPACITY + ";\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+  }
+  private static void generateBorderTilePlayersRequired(StringBuffer htmlOutput) {
+    htmlOutput.append(STYLE_INDENT + ".border-required-p1 {\n");
+    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
+      COLOR_REQUIRED, COLOR_REQUIRED, P1.getColorDefault(), COLOR_REQUIRED, COLOR_REQUIRED));
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".border-required-p1:hover {\n");
+    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
+      COLOR_REQUIRED, COLOR_REQUIRED, P1.getColorHighlight(), COLOR_REQUIRED, COLOR_REQUIRED));
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(STYLE_INDENT + ".border-required-p2 {\n");
+    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
+      COLOR_REQUIRED, COLOR_REQUIRED, P2.getColorDefault(), COLOR_REQUIRED, COLOR_REQUIRED));
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".border-required-p2:hover {\n");
+    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
+      COLOR_REQUIRED, COLOR_REQUIRED, P2.getColorHighlight(), COLOR_REQUIRED, COLOR_REQUIRED));
+    htmlOutput.append(STYLE_INDENT + "}\n");
+  }
+
   private static void generateBingoTileCss(StringBuffer htmlOutput) {
     htmlOutput.append(STYLE_INDENT + ".bingo-tile {\n");
     htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_SIZE + "px;\n");
@@ -78,113 +142,15 @@ public class GenerateBingoCard {
     htmlOutput.append(STYLE_INDENT + ".bingo-tile-child-div {\n");
     htmlOutput.append(STYLE_INDENT + "  position: absolute;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".bingo-tile-indicator {\n");
-    htmlOutput.append(STYLE_INDENT + "  fill-opacity: 0.0;\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke-opacity: 1.0;\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke-width: 4;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".bingo-tile-text {\n");
+    htmlOutput.append(STYLE_INDENT + "  color: #" + String.format("%06X", COLOR_TEXT) + ";\n");
     htmlOutput.append(STYLE_INDENT + "  display: grid;\n");
     htmlOutput.append(STYLE_INDENT + "  place-items:center;\n");
     htmlOutput.append(STYLE_INDENT + "  text-align: center;\n");
-    htmlOutput.append(STYLE_INDENT + "  color: #" + String.format("%06X", COLOR_TEXT) + ";\n");
     htmlOutput.append(STYLE_INDENT + "  user-select: none;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append("\n");
-
-    htmlOutput.append(STYLE_INDENT + ".tile-captured-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P1.getColorDefault()) + ";\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-
-    htmlOutput.append(STYLE_INDENT + ".tile-captured-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P2.getColorDefault()) + ";\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-
-    htmlOutput.append(STYLE_INDENT + ".tile-restricted {\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", COLOR_RESTRICTED) + ";\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
   }
 
-  private static void generateBorderTileColumns(StringBuffer htmlOutput) {
-    htmlOutput.append(STYLE_INDENT + ".border-column-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-column-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-  }
-  private static void generateBorderTileDiagonals(StringBuffer htmlOutput) {
-    htmlOutput.append(STYLE_INDENT + ".border-diagonal-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-diagonal-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-  }
-  private static void generateBorderTileRows(StringBuffer htmlOutput) {
-    htmlOutput.append(STYLE_INDENT + ".border-row-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-row-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-  }
-
-  private static void generateBorderTileRequired(StringBuffer htmlOutput) {
-    htmlOutput.append(STYLE_INDENT + ".border-default-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P1.getColorDefault()));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-default-p1:hover {\n");
-    htmlOutput.append(STYLE_INDENT + "  opacity: " + HIGHLIGHT_OPACITY + ";\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-
-    htmlOutput.append("\n");
-
-    htmlOutput.append(STYLE_INDENT + ".border-default-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P2.getColorDefault()));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-default-p2:hover {\n");
-    htmlOutput.append(STYLE_INDENT + "  opacity: " + HIGHLIGHT_OPACITY + ";\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-
-    htmlOutput.append("\n");
-
-    htmlOutput.append(STYLE_INDENT + ".border-required-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_BACKGROUND, COLOR_BACKGROUND, P1.getColorDefault(), COLOR_BACKGROUND, COLOR_BACKGROUND));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-required-p1:hover {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_BACKGROUND, COLOR_BACKGROUND, P1.getColorHighlight(), COLOR_BACKGROUND, COLOR_BACKGROUND));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-
-    htmlOutput.append("\n");
-
-    htmlOutput.append(STYLE_INDENT + ".border-required-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_BACKGROUND, COLOR_BACKGROUND, P2.getColorDefault(), COLOR_BACKGROUND, COLOR_BACKGROUND));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-required-p2:hover {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_BACKGROUND, COLOR_BACKGROUND, P2.getColorHighlight(), COLOR_BACKGROUND, COLOR_BACKGROUND));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-/*
-    htmlOutput.append("\n");
-
-    htmlOutput.append(STYLE_INDENT + ".border-restricted {\n");
-    htmlOutput.append(STYLE_INDENT + "  fill-opacity: 0.0;\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke-opacity: 1.0;\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  stroke: #%06X;\n", COLOR_RESTRICTED));
-    htmlOutput.append(STYLE_INDENT + "  stroke-width: 4;\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-*/
-  }
 
   private static void generateJs(StringBuffer htmlOutput) {
     htmlOutput.append("      <script>\n");
@@ -269,8 +235,10 @@ public class GenerateBingoCard {
   private static void generateJsFunctionBorderTileClick(StringBuffer htmlOutput) {
     htmlOutput.append(SCRIPT_INDENT + "function clickBorderTile(element, player) {\n");
     htmlOutput.append(SCRIPT_INDENT + "  var classList = element.classList;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var parentDiv = element.children.namedItem(\"parent-div\");\n");
     htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + "  var form = element.children.namedItem(\"form\");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var stateDiv = parentDiv.children.namedItem(\"state-div\");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var form = stateDiv.children.namedItem(\"form\");\n");
     htmlOutput.append(SCRIPT_INDENT + "  var required = form.elements[\"required\"];\n");
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "  if (required.value == \"0\") {\n");
@@ -394,14 +362,19 @@ public class GenerateBingoCard {
     htmlOutput.append(INDENT + "<svg class=\"not-visible\">\n");
     htmlOutput.append(INDENT + "  <defs>\n");
     htmlOutput.append(INDENT + "    <polygon id=\"empty\" points=\"\" />\n");
-    htmlOutput.append("\n");
 
-    // TODO: Re-write these as a function of TILE_CELL_SIZE and stroke-width?
-    htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-met\" class=\"bingo-tile bingo-tile-indicator tile-captured-p1\" points=\"2,2 92,2, 2,92\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-cannot-be-met\" class=\"bingo-tile bingo-tile-indicator tile-restricted\" points=\"2,2, 92,2, 2,92, 2,2 46,46\" />\n");
+    // TODO: Re-write these as a function of TILE_CELL_SIZE and stroke-width
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"p2-goal-met\" class=\"bingo-tile bingo-tile-indicator tile-captured-p2\" points=\"94,94, 6,94 94,6\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"p2-goal-cannot-be-met\" class=\"bingo-tile bingo-tile-indicator tile-restricted\" points=\"94,94, 6,94 94,6, 94,94, 50,50\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column\" class=\"border-column outline\" points=\"2,2 94,2 94,22, 2,22\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal\" class=\"border-diagonal outline\" points=\"2,2 22,2 22,22, 2,22\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row\" class=\"border-row outline\" points=\"2,2 22,2 22,94, 2,94\" />\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-met\" class=\"bingo-tile outline captured-p1\" points=\"2,2 92,2, 2,92\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-cannot-be-met\" class=\"bingo-tile outline restricted\" points=\"2,2, 92,2, 2,92, 2,2 46,46\" />\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"p2-goal-met\" class=\"bingo-tile outline captured-p2\" points=\"94,94, 6,94 94,6\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"p2-goal-cannot-be-met\" class=\"bingo-tile outline restricted\" points=\"94,94, 6,94 94,6, 94,94, 50,50\" />\n");
+
     htmlOutput.append(INDENT + "  </defs>\n");
     htmlOutput.append(INDENT + "</svg>\n");
   }
@@ -457,14 +430,27 @@ public class GenerateBingoCard {
   }
 
   private static void generateBorderTile(StringBuffer htmlOutput, int borderId, String borderType, char player, String title) {
-    String th = String.format("<th id=\"border-%d\" class=\"border-%s-p%c border-default-p%c\" title=\"%s\" onclick=\"clickBorderTile(this, 'p%c')\">\n",
-      borderId, borderType, player, player, title, player);
+    String th = String.format("<th id=\"border-%d\" class=\"border-%s border-default-p%c\" title=\"%s\" onclick=\"clickBorderTile(this, 'p%c')\">\n",
+      borderId, borderType, player, title, player);
+    String parentDiv = String.format("  <div id=\"parent-div\" class=\"border-%s\">\n", borderType);
+    String stateDiv = String.format("    <div id=\"state-div\"  class=\"border-%s bingo-tile-child-div\">\n", borderType);
+    String outlinesDiv = String.format("    <div id=\"outlines-div\" class=\"border-%s bingo-tile-child-div\">\n", borderType);
 
     final String INDENT = "          ";
     htmlOutput.append(INDENT + th);
-    htmlOutput.append(INDENT + "  <form id=\"form\" class=\"not-visible\">\n");
-    htmlOutput.append(INDENT + "    <input id=\"required\" type=\"hidden\" value=\"0\" />\n");
-    htmlOutput.append(INDENT + "  </form>\n");
+    htmlOutput.append(INDENT + parentDiv);
+    htmlOutput.append(INDENT + stateDiv);
+    htmlOutput.append(INDENT + "      <form id=\"form\"  class=\"not-visible\">\n");
+    htmlOutput.append(INDENT + "        <input id=\"player\" type=\"hidden\" value=\"0\" />\n");
+    htmlOutput.append(INDENT + "        <input id=\"required\" type=\"hidden\" value=\"0\" />\n");
+    htmlOutput.append(INDENT + "      </form>\n");
+    htmlOutput.append(INDENT + "    </div>\n");
+    htmlOutput.append(INDENT + outlinesDiv);
+    htmlOutput.append(INDENT + "      <svg id=\"outline\">\n");
+    htmlOutput.append(INDENT + "        <use id=\"player\" href=\"#empty\" />\n");
+    htmlOutput.append(INDENT + "      </svg>\n");
+    htmlOutput.append(INDENT + "    </div>\n");
+    htmlOutput.append(INDENT + "  </div>\n");
     htmlOutput.append(INDENT + "</th>\n");
   }
 
