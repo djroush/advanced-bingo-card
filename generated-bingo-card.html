@@ -4,6 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>Java Generated Sample Bingo Card</title>
       <style>
+        .background {
+          background-color: #2F2F2F;
+        }
         .child-div {
           position: absolute;
         }
@@ -43,28 +46,28 @@
           background: #A000C0;
         }
         .border-default-p1:hover {
-          opacity: 0.75;
+          opacity: 0.375;
         }
 
         .border-default-p2 {
           background: #00C020;
         }
         .border-default-p2:hover {
-          opacity: 0.75;
+          opacity: 0.375;
         }
 
         .border-required-p1 {
-          background: radial-gradient(circle at center, #5F5F5F 0px, #5F5F5F 4px, #A000C0 7px, #5F5F5F 10px, #5F5F5F 100%);
+          background: radial-gradient(circle at center, #2F2F2F 0px, #2F2F2F 4px, #A000C0 7px, #2F2F2F 10px, #2F2F2F 100%);
         }
         .border-required-p1:hover {
-          background: radial-gradient(circle at center, #5F5F5F 0px, #5F5F5F 4px, #C020E0 7px, #5F5F5F 10px, #5F5F5F 100%);
+          background: radial-gradient(circle at center, #2F2F2F 0px, #2F2F2F 4px, #C020E0 7px, #2F2F2F 10px, #2F2F2F 100%);
         }
 
         .border-required-p2 {
-          background: radial-gradient(circle at center, #5F5F5F 0px, #5F5F5F 4px, #00C020 7px, #5F5F5F 10px, #5F5F5F 100%);
+          background: radial-gradient(circle at center, #2F2F2F 0px, #2F2F2F 4px, #00C020 7px, #2F2F2F 10px, #2F2F2F 100%);
         }
         .border-required-p2:hover {
-          background: radial-gradient(circle at center, #5F5F5F 0px, #5F5F5F 4px, #20E040 7px, #5F5F5F 10px, #5F5F5F 100%);
+          background: radial-gradient(circle at center, #2F2F2F 0px, #2F2F2F 4px, #20E040 7px, #2F2F2F 10px, #2F2F2F 100%);
         }
 
         .bingo-tile {
@@ -96,9 +99,9 @@
 
         const PlayerType = { NONE : "0", P1 : "1", P2 : "2" };
         Object.freeze(PlayerType);
-        const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(192, 32, 224, 0.75)" };
+        const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(192, 32, 224, 0.375)" };
         Object.freeze(Player1Colors);
-        const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(32, 224, 64, 0.75)" };
+        const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(32, 224, 64, 0.375)" };
         Object.freeze(Player2Colors);
 
         function classifyClick(event) {
@@ -383,7 +386,7 @@
         }
       </script>
   </head>
-  <body>
+  <body class="background">
     <svg class="not-visible">
       <defs>
         <polygon id="empty" points="" />

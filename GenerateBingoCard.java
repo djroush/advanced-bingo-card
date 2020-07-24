@@ -8,14 +8,14 @@ public class GenerateBingoCard {
   private static final int TILE_CELL_SIZE = 4 * BORDER_CELL_SIZE;
 
   private static final long COLOR_BINGO_TILE_DEFAULT = 0x000000;
-  private static final long COLOR_REQUIRED = 0x5F5F5F;
+  private static final long COLOR_REQUIRED = 0x2F2F2F;
   private static final long COLOR_RESTRICTED = 0xE02040;
   private static final long COLOR_TEXT = 0xC0A000;
 
   private static final PlayerColors P1 = new PlayerColors(0xA000C0, 0xC020E0);
   private static final PlayerColors P2 = new PlayerColors(0x00C020, 0x20E040);
 
-  private static final String HIGHLIGHT_OPACITY = "0.75";
+  private static final String HIGHLIGHT_OPACITY = "0.375";
   private static final String STYLE_INDENT = "        ";
   private static final String SCRIPT_INDENT = "        ";
 
@@ -37,7 +37,7 @@ public class GenerateBingoCard {
     generateJs(htmlOutput);
     htmlOutput.append("  </head>\n");
 
-    htmlOutput.append("  <body>\n");
+    htmlOutput.append("  <body class=\"background\">\n");
     generateBody(htmlOutput);
     htmlOutput.append("  </body>\n");
     htmlOutput.append("</html>\n");
@@ -57,6 +57,10 @@ public class GenerateBingoCard {
     htmlOutput.append("      </style>\n");
   }
   private static void generateCommonCss(StringBuffer htmlOutput) {
+    htmlOutput.append(STYLE_INDENT + ".background {\n");
+    htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", COLOR_REQUIRED) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+
     htmlOutput.append(STYLE_INDENT + ".child-div {\n");
     htmlOutput.append(STYLE_INDENT + "  position: absolute;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
