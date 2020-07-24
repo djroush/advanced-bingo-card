@@ -29,7 +29,9 @@ public class GenerateBingoCard {
     htmlOutput.append("<!DOCTYPE html>\n");
     htmlOutput.append("<html>\n");
     htmlOutput.append("  <head>\n");
+    htmlOutput.append("    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n");
     htmlOutput.append("    <title>Java Generated Sample Bingo Card</title>\n");
+
     generateCss(htmlOutput);
     htmlOutput.append("\n");
     generateJs(htmlOutput);
@@ -156,39 +158,37 @@ public class GenerateBingoCard {
     htmlOutput.append("      <script>\n");
     generateJsConstants(htmlOutput);
     htmlOutput.append("\n");
-    generateJsFunctionClickType(htmlOutput);
-    generateJsFunctionPlayerType(htmlOutput);
+    generateJsFunctionsSingleTile(htmlOutput);
     htmlOutput.append("\n");
-    generateJsFunctionBorderTileClick(htmlOutput);
-    generateJsFunctionBingoTileClick(htmlOutput);
-    generateJsFunctionAdvanceTileState(htmlOutput);
-    generateJsFunctionBingoTileMouse(htmlOutput);
+    generateJsFunctionsMultiTile(htmlOutput);
     htmlOutput.append("      </script>\n");
   }
 
   private static void generateJsConstants(StringBuffer htmlOutput) {
+    final String BINGO_SIZE_JS = String.format("const BingoSize = %d;\n", BINGO_SIZE);
+    final String BINGO_TYPES = String.format("const BingoTypes = { COLUMN: %d, ROW: 1, TL_BR: %d, TR_BL: %d };\n", BINGO_SIZE, (BINGO_SIZE + 1), (BINGO_SIZE - 1));
     final String DEFAULT = getRgba(COLOR_BINGO_TILE_DEFAULT, "1");
     final String P1_HIGHLIGHT = getRgba(P1.getColorHighlight(), HIGHLIGHT_OPACITY);
     final String P2_HIGHLIGHT = getRgba(P2.getColorHighlight(), HIGHLIGHT_OPACITY);
     final String P1_COLORS = String.format("const Player1Colors = { DEFAULT : \"%s\", HIGHLIGHT : \"%s\" };\n", DEFAULT, P1_HIGHLIGHT);
     final String P2_COLORS = String.format("const Player2Colors = { DEFAULT : \"%s\", HIGHLIGHT : \"%s\" };\n", DEFAULT, P2_HIGHLIGHT);
 
+    htmlOutput.append(SCRIPT_INDENT + BINGO_SIZE_JS);
+    htmlOutput.append(SCRIPT_INDENT + "Object.freeze(BingoSize);\n");
+    htmlOutput.append(SCRIPT_INDENT + "const BingoStates = { GOAL_NOT_MET : \"0\", GOAL_MET : \"1\", GOAL_CANNOT_BE_MET_ANYMORE : \"2\" };\n");
+    htmlOutput.append(SCRIPT_INDENT + "Object.freeze(BingoStates);\n");
+    htmlOutput.append(SCRIPT_INDENT + BINGO_TYPES);
+    htmlOutput.append(SCRIPT_INDENT + "Object.freeze(BingoTypes);\n");
+    htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "const ClickType = { NORMAL : \"0\", SHIFT : \"1\", CONTROL : \"2\" };\n");
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(ClickType);\n");
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "const PlayerType = { NONE : \"0\", P1 : \"1\", P2 : \"2\" };\n");
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(PlayerType);\n");
-    htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + P1_COLORS);
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(Player1Colors);\n");
     htmlOutput.append(SCRIPT_INDENT + P2_COLORS);
     htmlOutput.append(SCRIPT_INDENT + "Object.freeze(Player2Colors);\n");
-    htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + "const PlayerTileStates = { GOAL_NOT_MET : \"0\", GOAL_MET : \"1\", GOAL_CANNOT_BE_MET_ANYMORE : \"2\" };\n");
-    htmlOutput.append(SCRIPT_INDENT + "Object.freeze(PlayerTileStates);\n");
-    htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + "const PlayerBorderStates = { BINGO_UNCLAIMED : \"0\", BINGO_REQUIRED : \"1\", BINGO_CANNOT_HAPPEN_ANYMORE : \"2\" };\n");
-    htmlOutput.append(SCRIPT_INDENT + "Object.freeze(PlayerBorderStates);\n");
   }
   private static String getRgba(long rgb, String alpha) {
     int r = (int)((rgb & 0xFF0000) >> 16);
@@ -196,6 +196,16 @@ public class GenerateBingoCard {
     int b = (int)((rgb & 0x0000FF));
 
     return String.format("rgba(%d, %d, %d, %s)", r, g, b, alpha);
+  }
+
+  private static void generateJsFunctionsSingleTile(StringBuffer htmlOutput) {
+    generateJsFunctionClickType(htmlOutput);
+    generateJsFunctionPlayerType(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionBorderTileClick(htmlOutput);
+    generateJsFunctionBingoTileClick(htmlOutput);
+    generateJsFunctionAdvanceTileState(htmlOutput);
+    generateJsFunctionBingoTileMouse(htmlOutput);
   }
 
   private static void generateJsFunctionClickType(StringBuffer htmlOutput) {
@@ -277,6 +287,8 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "    case PlayerType.NONE:\n");
     htmlOutput.append(SCRIPT_INDENT + "    break;\n");
     htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  updateBingos(element.id, playerType);\n");
     htmlOutput.append(SCRIPT_INDENT + "}\n");
   }
   private static void generateJsFunctionAdvanceTileState(StringBuffer htmlOutput) {
@@ -286,35 +298,35 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "  switch (clickType) {\n");
     htmlOutput.append(SCRIPT_INDENT + "    case ClickType.NORMAL:\n");
     htmlOutput.append(SCRIPT_INDENT + "      switch (state.value) {\n");
-    htmlOutput.append(SCRIPT_INDENT + "        case PlayerTileStates.GOAL_NOT_MET:\n");
-    htmlOutput.append(SCRIPT_INDENT + "          state.value = PlayerTileStates.GOAL_MET;\n");
+    htmlOutput.append(SCRIPT_INDENT + "        case BingoStates.GOAL_NOT_MET:\n");
+    htmlOutput.append(SCRIPT_INDENT + "          state.value = BingoStates.GOAL_MET;\n");
     htmlOutput.append(SCRIPT_INDENT + "          svgHref.value = (player1 ? \"#p1-goal-met\" : \"#p2-goal-met\");\n");
     htmlOutput.append(SCRIPT_INDENT + "        break;\n");
-    htmlOutput.append(SCRIPT_INDENT + "        case PlayerTileStates.GOAL_MET:\n");
-    htmlOutput.append(SCRIPT_INDENT + "          state.value = PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE;\n");
+    htmlOutput.append(SCRIPT_INDENT + "        case BingoStates.GOAL_MET:\n");
+    htmlOutput.append(SCRIPT_INDENT + "          state.value = BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;\n");
     htmlOutput.append(SCRIPT_INDENT + "          svgHref.value = (player1 ? \"#p1-goal-cannot-be-met\" : \"#p2-goal-cannot-be-met\");\n");
     htmlOutput.append(SCRIPT_INDENT + "        break;\n");
-    htmlOutput.append(SCRIPT_INDENT + "        case PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE:\n");
-    htmlOutput.append(SCRIPT_INDENT + "          state.value = PlayerTileStates.GOAL_NOT_MET;\n");
+    htmlOutput.append(SCRIPT_INDENT + "        case BingoStates.GOAL_CANNOT_BE_MET_ANYMORE:\n");
+    htmlOutput.append(SCRIPT_INDENT + "          state.value = BingoStates.GOAL_NOT_MET;\n");
     htmlOutput.append(SCRIPT_INDENT + "          svgHref.value = \"#empty\";\n");
     htmlOutput.append(SCRIPT_INDENT + "        break;\n");
     htmlOutput.append(SCRIPT_INDENT + "      }\n");
     htmlOutput.append(SCRIPT_INDENT + "    break;\n");
     htmlOutput.append(SCRIPT_INDENT + "    case ClickType.CONTROL:\n");
-    htmlOutput.append(SCRIPT_INDENT + "      if (state.value == PlayerTileStates.GOAL_MET) {\n");
-    htmlOutput.append(SCRIPT_INDENT + "        state.value = PlayerTileStates.GOAL_NOT_MET;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      if (state.value == BingoStates.GOAL_MET) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "        state.value = BingoStates.GOAL_NOT_MET;\n");
     htmlOutput.append(SCRIPT_INDENT + "        svgHref.value = \"#empty\";\n");
     htmlOutput.append(SCRIPT_INDENT + "      } else {\n");
-    htmlOutput.append(SCRIPT_INDENT + "        state.value = PlayerTileStates.GOAL_MET;\n");
+    htmlOutput.append(SCRIPT_INDENT + "        state.value = BingoStates.GOAL_MET;\n");
     htmlOutput.append(SCRIPT_INDENT + "        svgHref.value = (player1 ? \"#p1-goal-met\" : \"#p2-goal-met\");\n");
     htmlOutput.append(SCRIPT_INDENT + "      }\n");
     htmlOutput.append(SCRIPT_INDENT + "    break;\n");
     htmlOutput.append(SCRIPT_INDENT + "    case ClickType.SHIFT:\n");
-    htmlOutput.append(SCRIPT_INDENT + "      if (state.value == PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE) {\n");
-    htmlOutput.append(SCRIPT_INDENT + "        state.value = PlayerTileStates.GOAL_NOT_MET;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      if (state.value == BingoStates.GOAL_CANNOT_BE_MET_ANYMORE) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "        state.value = BingoStates.GOAL_NOT_MET;\n");
     htmlOutput.append(SCRIPT_INDENT + "        svgHref.value = \"#empty\";\n");
     htmlOutput.append(SCRIPT_INDENT + "      } else {\n");
-    htmlOutput.append(SCRIPT_INDENT + "        state.value = PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE;\n");
+    htmlOutput.append(SCRIPT_INDENT + "        state.value = BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;\n");
     htmlOutput.append(SCRIPT_INDENT + "        svgHref.value = (player1 ? \"#p1-goal-cannot-be-met\" : \"#p2-goal-cannot-be-met\");\n");
     htmlOutput.append(SCRIPT_INDENT + "      }\n");
     htmlOutput.append(SCRIPT_INDENT + "    break;\n");
@@ -338,6 +350,180 @@ public class GenerateBingoCard {
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "  var tileBackground = \"linear-gradient(135deg, \" + colorP1 + \" 0px, \" + colorP1 + \" 68px, #" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + " 69px, #" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + " 70px, \" + colorP2 + \" 71px, \" + colorP2 + \" 140px)\";\n");
     htmlOutput.append(SCRIPT_INDENT + "  element.style.background = tileBackground;\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+
+  private static void generateJsFunctionsMultiTile(StringBuffer htmlOutput) {
+    generateJsFunctionUpdateBingos(htmlOutput);
+    generateJsFunctionUpdateBingo(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionNewBorderStatus(htmlOutput);
+    generateJsFunctionBingoStatus(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionOutlineName(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionBorderId(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionUpdateBorderOutline(htmlOutput);
+  }
+
+  private static void generateJsFunctionUpdateBingos(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function updateBingos(tileId, player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  tileNumber = parseInt(tileId.substring(\"tile-\".length));\n");
+    htmlOutput.append(SCRIPT_INDENT + "  column = tileNumber % BingoTypes.COLUMN;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  row = Math.floor(tileNumber / BingoTypes.COLUMN);\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  updateBingo(BingoTypes.ROW * column, BingoTypes.COLUMN, player, tileNumber);\n");
+    htmlOutput.append(SCRIPT_INDENT + "  updateBingo(BingoTypes.COLUMN * row, BingoTypes.ROW, player, tileNumber);\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (row == column) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    updateBingo(0, BingoTypes.TL_BR, player, tileNumber);\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if ((row + column) == BingoTypes.TL_BR) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    // row and column are each offset by 1, 1..5 instead of 0..4, so (BingoSize + 1) instead of (BingoSize - 1)\n");
+    htmlOutput.append(SCRIPT_INDENT + "    updateBingo(BingoTypes.TR_BL, BingoTypes.TR_BL, player, tileNumber)\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+  private static void generateJsFunctionUpdateBingo(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function updateBingo(start, delta, player, tileNumber) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var newStatus = getNewBorderStatus(start, delta, player);\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var outlineName = getOutlineName(newStatus, delta, player);\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var borderId = getBorderId(delta, player, tileNumber)\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  updateBorderOutline(borderId, outlineName);\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+
+  private static void generateJsFunctionNewBorderStatus(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function getNewBorderStatus (start, delta, player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var notMet = false;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var cannotBeMet = false;\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var counter = 0;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var tileNumberLoop = start;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  while ((counter < BingoSize) && (!notMet || !cannotBeMet)) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    var workingTile = document.getElementById(\"tile-\" + tileNumberLoop);\n");
+    htmlOutput.append(SCRIPT_INDENT + "    var status = getBingoStatus(workingTile, player)\n");
+    htmlOutput.append(SCRIPT_INDENT + "    if (status == BingoStates.GOAL_CANNOT_BE_MET_ANYMORE) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "      cannotBeMet = true;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    } else if (status == BingoStates.GOAL_NOT_MET) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "      notMet = true;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "    counter++;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    tileNumberLoop += delta;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (cannotBeMet) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    return BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  } else if (notMet) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    return BingoStates.GOAL_NOT_MET;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  } else {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    return BingoStates.GOAL_MET;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+  private static void generateJsFunctionBingoStatus(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function getBingoStatus(element, player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var parentDiv = element.children.namedItem(\"parent-div\");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var stateDiv = parentDiv.children.namedItem(\"state-div\");\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var form = stateDiv.children.namedItem(\"form\");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  switch (player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    case PlayerType.P1:\n");
+    htmlOutput.append(SCRIPT_INDENT + "      return form.elements[\"player1\"].value;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    break;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    case PlayerType.P2:\n");
+    htmlOutput.append(SCRIPT_INDENT + "      return form.elements[\"player2\"].value;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    break;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    case PlayerType.NONE:\n");
+    htmlOutput.append(SCRIPT_INDENT + "      return -1;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+
+  private static void generateJsFunctionOutlineName(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function getOutlineName(newStatus, delta, player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var outlineName = \"#empty\";\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (newStatus != BingoStates.GOAL_NOT_MET) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    var borderType;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    switch (delta) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "      case BingoTypes.ROW: borderType = \"row\";\n");
+    htmlOutput.append(SCRIPT_INDENT + "      break;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      case BingoTypes.COLUMN: borderType = \"column\";\n");
+    htmlOutput.append(SCRIPT_INDENT + "      break;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      case BingoTypes.TL_BR:\n");
+    htmlOutput.append(SCRIPT_INDENT + "      case BingoTypes.TR_BL:\n");
+    htmlOutput.append(SCRIPT_INDENT + "        borderType = \"diagonal\";\n");
+    htmlOutput.append(SCRIPT_INDENT + "      break;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "    var borderColor;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    switch (newStatus) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "      case BingoStates.GOAL_MET:\n");
+    htmlOutput.append(SCRIPT_INDENT + "        if (player == PlayerType.P1) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "          borderColor = \"p1\";\n");
+    htmlOutput.append(SCRIPT_INDENT + "        } else if (player == PlayerType.P2) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "          borderColor = \"p2\";\n");
+    htmlOutput.append(SCRIPT_INDENT + "        }\n");
+    htmlOutput.append(SCRIPT_INDENT + "      break;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      case BingoStates.GOAL_CANNOT_BE_MET_ANYMORE:\n");
+    htmlOutput.append(SCRIPT_INDENT + "        borderColor = \"restricted\";\n");
+    htmlOutput.append(SCRIPT_INDENT + "      break;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "    outlineName = \"#\" + borderType + \"-\" + borderColor;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  return outlineName;\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+  private static void generateJsFunctionBorderId(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function getBorderId(delta, player, tileNumber) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (PlayerType.NONE == player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    return -1; // this should never happen\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append(SCRIPT_INDENT + "  switch (delta) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    case BingoTypes.COLUMN:\n");
+    htmlOutput.append(SCRIPT_INDENT + "      column = 1 + (tileNumber % BingoSize);\n");
+    htmlOutput.append(SCRIPT_INDENT + "      if (PlayerType.P1 == player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "        return (1 * BingoTypes.TL_BR) + column;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      } else { // PlayerType.P2\n");
+    htmlOutput.append(SCRIPT_INDENT + "        return (4 * BingoTypes.TL_BR) - column;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      }\n");
+    htmlOutput.append(SCRIPT_INDENT + "    case BingoTypes.ROW:\n");
+    htmlOutput.append(SCRIPT_INDENT + "      row = 1 + Math.floor(tileNumber / BingoSize);\n");
+    htmlOutput.append(SCRIPT_INDENT + "      if (PlayerType.P1 == player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "        return (1 * BingoTypes.TL_BR) - row;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      } else { // PlayerType.P2\n");
+    htmlOutput.append(SCRIPT_INDENT + "        return (2 * BingoTypes.TL_BR) + row;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      }\n");
+    htmlOutput.append(SCRIPT_INDENT + "    case BingoTypes.TR_BL:\n");
+    htmlOutput.append(SCRIPT_INDENT + "      if (PlayerType.P1 == player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "        return (0 * BingoTypes.TL_BR);\n");
+    htmlOutput.append(SCRIPT_INDENT + "      } else { // PlayerType.P2\n");
+    htmlOutput.append(SCRIPT_INDENT + "        return (2 * BingoTypes.TL_BR);\n");
+    htmlOutput.append(SCRIPT_INDENT + "      }\n");
+    htmlOutput.append(SCRIPT_INDENT + "    case BingoTypes.TL_BR:\n");
+    htmlOutput.append(SCRIPT_INDENT + "      if (PlayerType.P1 == player) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "        return (1 * BingoTypes.TL_BR);\n");
+    htmlOutput.append(SCRIPT_INDENT + "      } else { // PlayerType.P2\n");
+    htmlOutput.append(SCRIPT_INDENT + "        return (3 * BingoTypes.TL_BR);\n");
+    htmlOutput.append(SCRIPT_INDENT + "      }\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+  private static void generateJsFunctionUpdateBorderOutline(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function updateBorderOutline (borderId, outlineName) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var borderTile = document.getElementById(\"border-\" + borderId);\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var parentDiv = borderTile.children.namedItem(\"parent-div\");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var svgsDiv = parentDiv.children.namedItem(\"outline-div\");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var svg = svgsDiv.children.namedItem(\"outline\");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var outline = svg.children.namedItem(\"bingo\");\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var svgHref = document.createAttribute(\"href\");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  svgHref.value = outlineName;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  outline.attributes.setNamedItem(svgHref);\n");
     htmlOutput.append(SCRIPT_INDENT + "}\n");
   }
 
@@ -365,9 +551,17 @@ public class GenerateBingoCard {
 
     // TODO: Re-write these as a function of TILE_CELL_SIZE and stroke-width
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"column\" class=\"border-column outline\" points=\"2,2 94,2 94,22, 2,22\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"diagonal\" class=\"border-diagonal outline\" points=\"2,2 22,2 22,22, 2,22\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"row\" class=\"border-row outline\" points=\"2,2 22,2 22,94, 2,94\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column-p1\" class=\"border-column outline captured-p1\" points=\"2,2 94,2 94,22, 2,22\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column-p2\" class=\"border-column outline captured-p2\" points=\"2,2 94,2 94,22, 2,22\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column-restricted\" class=\"border-column outline restricted\" points=\"2,2 94,2 94,22, 2,22\" />\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p1\" class=\"border-diagonal outline captured-p1\" points=\"2,2 22,2 22,22, 2,22\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p2\" class=\"border-diagonal outline captured-p2\" points=\"2,2 22,2 22,22, 2,22\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-restricted\" class=\"border-diagonal outline restricted\" points=\"2,2 22,2 22,22, 2,22\" />\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row-p1\" class=\"border-row outline captured-p1\" points=\"2,2 22,2 22,94, 2,94\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row-p2\" class=\"border-row outline captured-p2\" points=\"2,2 22,2 22,94, 2,94\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row-restricted\" class=\"border-row outline restricted\" points=\"2,2 22,2 22,94, 2,94\" />\n");
     htmlOutput.append("\n");
     htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-met\" class=\"bingo-tile outline captured-p1\" points=\"2,2 92,2, 2,92\" />\n");
     htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-cannot-be-met\" class=\"bingo-tile outline restricted\" points=\"2,2, 92,2, 2,92, 2,2 46,46\" />\n");
@@ -434,7 +628,7 @@ public class GenerateBingoCard {
       borderId, borderType, player, title, player);
     String parentDiv = String.format("  <div id=\"parent-div\" class=\"border-%s\">\n", borderType);
     String stateDiv = String.format("    <div id=\"state-div\"  class=\"border-%s child-div\">\n", borderType);
-    String outlinesDiv = String.format("    <div id=\"outlines-div\" class=\"border-%s child-div\">\n", borderType);
+    String outlinesDiv = String.format("    <div id=\"outline-div\" class=\"border-%s child-div\">\n", borderType);
 
     int width = BORDER_CELL_SIZE;
     int height = BORDER_CELL_SIZE;
@@ -443,20 +637,20 @@ public class GenerateBingoCard {
     } else if ("row".equals(borderType)) {
       height = TILE_CELL_SIZE;
     }
-    String svg = String.format("      <svg id=\"outlines\" width=\"%dpx\" height=\"%dpx\">\n", width, height);
+    String svg = String.format("      <svg id=\"outline\" width=\"%dpx\" height=\"%dpx\">\n", width, height);
 
     final String INDENT = "          ";
     htmlOutput.append(INDENT + th);
     htmlOutput.append(INDENT + parentDiv);
     htmlOutput.append(INDENT + stateDiv);
     htmlOutput.append(INDENT + "      <form id=\"form\"  class=\"not-visible\">\n");
-    htmlOutput.append(INDENT + "        <input id=\"player\" type=\"hidden\" value=\"0\" />\n");
+    // htmlOutput.append(INDENT + "        <input id=\"player\" type=\"hidden\" value=\"0\" />\n");
     htmlOutput.append(INDENT + "        <input id=\"required\" type=\"hidden\" value=\"0\" />\n");
     htmlOutput.append(INDENT + "      </form>\n");
     htmlOutput.append(INDENT + "    </div>\n");
     htmlOutput.append(INDENT + outlinesDiv);
     htmlOutput.append(INDENT + svg);
-    htmlOutput.append(INDENT + "        <use id=\"player\" href=\"#empty\" />\n");
+    htmlOutput.append(INDENT + "        <use id=\"bingo\" href=\"#empty\" />\n");
     htmlOutput.append(INDENT + "      </svg>\n");
     htmlOutput.append(INDENT + "    </div>\n");
     htmlOutput.append(INDENT + "  </div>\n");

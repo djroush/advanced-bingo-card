@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>Java Generated Sample Bingo Card</title>
       <style>
         .child-div {
@@ -83,22 +84,22 @@
       </style>
 
       <script>
+        const BingoSize = 5;
+        Object.freeze(BingoSize);
+        const BingoStates = { GOAL_NOT_MET : "0", GOAL_MET : "1", GOAL_CANNOT_BE_MET_ANYMORE : "2" };
+        Object.freeze(BingoStates);
+        const BingoTypes = { COLUMN: 5, ROW: 1, TL_BR: 6, TR_BL: 4 };
+        Object.freeze(BingoTypes);
+
         const ClickType = { NORMAL : "0", SHIFT : "1", CONTROL : "2" };
         Object.freeze(ClickType);
 
         const PlayerType = { NONE : "0", P1 : "1", P2 : "2" };
         Object.freeze(PlayerType);
-
         const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(192, 32, 224, 0.75)" };
         Object.freeze(Player1Colors);
         const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(32, 224, 64, 0.75)" };
         Object.freeze(Player2Colors);
-
-        const PlayerTileStates = { GOAL_NOT_MET : "0", GOAL_MET : "1", GOAL_CANNOT_BE_MET_ANYMORE : "2" };
-        Object.freeze(PlayerTileStates);
-
-        const PlayerBorderStates = { BINGO_UNCLAIMED : "0", BINGO_REQUIRED : "1", BINGO_CANNOT_HAPPEN_ANYMORE : "2" };
-        Object.freeze(PlayerBorderStates);
 
         function classifyClick(event) {
           if (event.ctrlKey) {
@@ -172,6 +173,8 @@
             case PlayerType.NONE:
             break;
           }
+
+          updateBingos(element.id, playerType);
         }
         function advanceTileState(clickType, state, isPlayer1, outline) {
           var svgHref = document.createAttribute("href");
@@ -179,35 +182,35 @@
           switch (clickType) {
             case ClickType.NORMAL:
               switch (state.value) {
-                case PlayerTileStates.GOAL_NOT_MET:
-                  state.value = PlayerTileStates.GOAL_MET;
+                case BingoStates.GOAL_NOT_MET:
+                  state.value = BingoStates.GOAL_MET;
                   svgHref.value = (player1 ? "#p1-goal-met" : "#p2-goal-met");
                 break;
-                case PlayerTileStates.GOAL_MET:
-                  state.value = PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE;
+                case BingoStates.GOAL_MET:
+                  state.value = BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;
                   svgHref.value = (player1 ? "#p1-goal-cannot-be-met" : "#p2-goal-cannot-be-met");
                 break;
-                case PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE:
-                  state.value = PlayerTileStates.GOAL_NOT_MET;
+                case BingoStates.GOAL_CANNOT_BE_MET_ANYMORE:
+                  state.value = BingoStates.GOAL_NOT_MET;
                   svgHref.value = "#empty";
                 break;
               }
             break;
             case ClickType.CONTROL:
-              if (state.value == PlayerTileStates.GOAL_MET) {
-                state.value = PlayerTileStates.GOAL_NOT_MET;
+              if (state.value == BingoStates.GOAL_MET) {
+                state.value = BingoStates.GOAL_NOT_MET;
                 svgHref.value = "#empty";
               } else {
-                state.value = PlayerTileStates.GOAL_MET;
+                state.value = BingoStates.GOAL_MET;
                 svgHref.value = (player1 ? "#p1-goal-met" : "#p2-goal-met");
               }
             break;
             case ClickType.SHIFT:
-              if (state.value == PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE) {
-                state.value = PlayerTileStates.GOAL_NOT_MET;
+              if (state.value == BingoStates.GOAL_CANNOT_BE_MET_ANYMORE) {
+                state.value = BingoStates.GOAL_NOT_MET;
                 svgHref.value = "#empty";
               } else {
-                state.value = PlayerTileStates.GOAL_CANNOT_BE_MET_ANYMORE;
+                state.value = BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;
                 svgHref.value = (player1 ? "#p1-goal-cannot-be-met" : "#p2-goal-cannot-be-met");
               }
             break;
@@ -230,6 +233,154 @@
           var tileBackground = "linear-gradient(135deg, " + colorP1 + " 0px, " + colorP1 + " 68px, #000000 69px, #000000 70px, " + colorP2 + " 71px, " + colorP2 + " 140px)";
           element.style.background = tileBackground;
         }
+
+        function updateBingos(tileId, player) {
+          tileNumber = parseInt(tileId.substring("tile-".length));
+          column = tileNumber % BingoTypes.COLUMN;
+          row = Math.floor(tileNumber / BingoTypes.COLUMN);
+
+          updateBingo(BingoTypes.ROW * column, BingoTypes.COLUMN, player, tileNumber);
+          updateBingo(BingoTypes.COLUMN * row, BingoTypes.ROW, player, tileNumber);
+          if (row == column) {
+            updateBingo(0, BingoTypes.TL_BR, player, tileNumber);
+          }
+          if ((row + column) == BingoTypes.TL_BR) {
+            // row and column are each offset by 1, 1..5 instead of 0..4, so (BingoSize + 1) instead of (BingoSize - 1)
+            updateBingo(BingoTypes.TR_BL, BingoTypes.TR_BL, player, tileNumber)
+          }
+        }
+        function updateBingo(start, delta, player, tileNumber) {
+          var newStatus = getNewBorderStatus(start, delta, player);
+          var outlineName = getOutlineName(newStatus, delta, player);
+          var borderId = getBorderId(delta, player, tileNumber)
+
+          updateBorderOutline(borderId, outlineName);
+        }
+
+        function getNewBorderStatus (start, delta, player) {
+          var notMet = false;
+          var cannotBeMet = false;
+
+          var counter = 0;
+          var tileNumberLoop = start;
+          while ((counter < BingoSize) && (!notMet || !cannotBeMet)) {
+            var workingTile = document.getElementById("tile-" + tileNumberLoop);
+            var status = getBingoStatus(workingTile, player)
+            if (status == BingoStates.GOAL_CANNOT_BE_MET_ANYMORE) {
+              cannotBeMet = true;
+            } else if (status == BingoStates.GOAL_NOT_MET) {
+              notMet = true;
+            }
+
+            counter++;
+            tileNumberLoop += delta;
+          }
+
+          if (cannotBeMet) {
+            return BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;
+          } else if (notMet) {
+            return BingoStates.GOAL_NOT_MET;
+          } else {
+            return BingoStates.GOAL_MET;
+          }
+        }
+        function getBingoStatus(element, player) {
+          var parentDiv = element.children.namedItem("parent-div");
+          var stateDiv = parentDiv.children.namedItem("state-div");
+
+          var form = stateDiv.children.namedItem("form");
+          switch (player) {
+            case PlayerType.P1:
+              return form.elements["player1"].value;
+            break;
+            case PlayerType.P2:
+              return form.elements["player2"].value;
+            break;
+            case PlayerType.NONE:
+              return -1;
+          }
+        }
+
+        function getOutlineName(newStatus, delta, player) {
+          var outlineName = "#empty";
+          if (newStatus != BingoStates.GOAL_NOT_MET) {
+            var borderType;
+            switch (delta) {
+              case BingoTypes.ROW: borderType = "row";
+              break;
+              case BingoTypes.COLUMN: borderType = "column";
+              break;
+              case BingoTypes.TL_BR:
+              case BingoTypes.TR_BL:
+                borderType = "diagonal";
+              break;
+            }
+
+            var borderColor;
+            switch (newStatus) {
+              case BingoStates.GOAL_MET:
+                if (player == PlayerType.P1) {
+                  borderColor = "p1";
+                } else if (player == PlayerType.P2) {
+                  borderColor = "p2";
+                }
+              break;
+              case BingoStates.GOAL_CANNOT_BE_MET_ANYMORE:
+                borderColor = "restricted";
+              break;
+            }
+
+            outlineName = "#" + borderType + "-" + borderColor;
+          }
+
+          return outlineName;
+        }
+
+        function getBorderId(delta, player, tileNumber) {
+          if (PlayerType.NONE == player) {
+            return -1; // this should never happen
+          }
+          switch (delta) {
+            case BingoTypes.COLUMN:
+              column = 1 + (tileNumber % BingoSize);
+              if (PlayerType.P1 == player) {
+                return (1 * BingoTypes.TL_BR) + column;
+              } else { // PlayerType.P2
+                return (4 * BingoTypes.TL_BR) - column;
+              }
+            case BingoTypes.ROW:
+              row = 1 + Math.floor(tileNumber / BingoSize);
+              if (PlayerType.P1 == player) {
+                return (1 * BingoTypes.TL_BR) - row;
+              } else { // PlayerType.P2
+                return (2 * BingoTypes.TL_BR) + row;
+              }
+            case BingoTypes.TR_BL:
+              if (PlayerType.P1 == player) {
+                return (0 * BingoTypes.TL_BR);
+              } else { // PlayerType.P2
+                return (2 * BingoTypes.TL_BR);
+              }
+            case BingoTypes.TL_BR:
+              if (PlayerType.P1 == player) {
+                return (1 * BingoTypes.TL_BR);
+              } else { // PlayerType.P2
+                return (3 * BingoTypes.TL_BR);
+              }
+          }
+        }
+
+        function updateBorderOutline (borderId, outlineName) {
+          var borderTile = document.getElementById("border-" + borderId);
+          var parentDiv = borderTile.children.namedItem("parent-div");
+          var svgsDiv = parentDiv.children.namedItem("outline-div");
+          var svg = svgsDiv.children.namedItem("outline");
+          var outline = svg.children.namedItem("bingo");
+
+          var svgHref = document.createAttribute("href");
+          svgHref.value = outlineName;
+          outline.attributes.setNamedItem(svgHref);
+        }
       </script>
   </head>
   <body>
@@ -237,9 +388,17 @@
       <defs>
         <polygon id="empty" points="" />
 
-        <polygon id="column" class="border-column outline" points="2,2 94,2 94,22, 2,22" />
-        <polygon id="diagonal" class="border-diagonal outline" points="2,2 22,2 22,22, 2,22" />
-        <polygon id="row" class="border-row outline" points="2,2 22,2 22,94, 2,94" />
+        <polygon id="column-p1" class="border-column outline captured-p1" points="2,2 94,2 94,22, 2,22" />
+        <polygon id="column-p2" class="border-column outline captured-p2" points="2,2 94,2 94,22, 2,22" />
+        <polygon id="column-restricted" class="border-column outline restricted" points="2,2 94,2 94,22, 2,22" />
+
+        <polygon id="diagonal-p1" class="border-diagonal outline captured-p1" points="2,2 22,2 22,22, 2,22" />
+        <polygon id="diagonal-p2" class="border-diagonal outline captured-p2" points="2,2 22,2 22,22, 2,22" />
+        <polygon id="diagonal-restricted" class="border-diagonal outline restricted" points="2,2 22,2 22,22, 2,22" />
+
+        <polygon id="row-p1" class="border-row outline captured-p1" points="2,2 22,2 22,94, 2,94" />
+        <polygon id="row-p2" class="border-row outline captured-p2" points="2,2 22,2 22,94, 2,94" />
+        <polygon id="row-restricted" class="border-row outline restricted" points="2,2 22,2 22,94, 2,94" />
 
         <polygon id="p1-goal-met" class="bingo-tile outline captured-p1" points="2,2 92,2, 2,92" />
         <polygon id="p1-goal-cannot-be-met" class="bingo-tile outline restricted" points="2,2, 92,2, 2,92, 2,2 46,46" />
@@ -255,13 +414,12 @@
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-diagonal child-div">
-                <svg id="outlines" width="24px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-diagonal child-div">
+                <svg id="outline" width="24px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -270,13 +428,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -285,13 +442,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -300,13 +456,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -315,13 +470,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -330,13 +484,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -345,13 +498,12 @@
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-diagonal child-div">
-                <svg id="outlines" width="24px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-diagonal child-div">
+                <svg id="outline" width="24px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -362,13 +514,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -467,13 +618,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -484,13 +634,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -589,13 +738,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -606,13 +754,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -711,13 +858,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -728,13 +874,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -833,13 +978,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -850,13 +994,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -955,13 +1098,12 @@
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-row child-div">
-                <svg id="outlines" width="24px" height="96px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-row child-div">
+                <svg id="outline" width="24px" height="96px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -972,13 +1114,12 @@
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-diagonal child-div">
-                <svg id="outlines" width="24px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-diagonal child-div">
+                <svg id="outline" width="24px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -987,13 +1128,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -1002,13 +1142,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -1017,13 +1156,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -1032,13 +1170,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -1047,13 +1184,12 @@
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-column child-div">
-                <svg id="outlines" width="96px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-column child-div">
+                <svg id="outline" width="96px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
@@ -1062,13 +1198,12 @@
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
-                  <input id="player" type="hidden" value="0" />
                   <input id="required" type="hidden" value="0" />
                 </form>
               </div>
-              <div id="outlines-div" class="border-diagonal child-div">
-                <svg id="outlines" width="24px" height="24px">
-                  <use id="player" href="#empty" />
+              <div id="outline-div" class="border-diagonal child-div">
+                <svg id="outline" width="24px" height="24px">
+                  <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
