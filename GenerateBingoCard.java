@@ -4,8 +4,14 @@ import java.lang.StringBuffer;
 
 public class GenerateBingoCard {
   private static final int BINGO_SIZE = 5;
-  private static final int BORDER_CELL_SIZE = 24;
-  private static final int TILE_CELL_SIZE = 4 * BORDER_CELL_SIZE;
+
+  private static final int STROKE_WIDTH_HALF = 2;
+  private static final int STROKE_WIDTH_FULL = 2 * STROKE_WIDTH_HALF;
+
+  private static final int TILE_CELL_QRTR = 24;
+  private static final int TILE_CELL_HALF = 2 * TILE_CELL_QRTR;
+  private static final int TILE_CELL_FULL = 2 * TILE_CELL_HALF;
+  private static final int TILE_CELL_SQRT = 3 * TILE_CELL_HALF; // 1.50x, which is greater than the needed 1.41x
 
   private static final long COLOR_BINGO_TILE_DEFAULT = 0x000000;
   private static final long COLOR_REQUIRED = 0x2F2F2F;
@@ -70,7 +76,7 @@ public class GenerateBingoCard {
     htmlOutput.append(STYLE_INDENT + ".outline {\n");
     htmlOutput.append(STYLE_INDENT + "  fill-opacity: 0.0;\n");
     htmlOutput.append(STYLE_INDENT + "  stroke-opacity: 1.0;\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke-width: 4;\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke-width: " + STROKE_WIDTH_FULL + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append("\n");
     htmlOutput.append(STYLE_INDENT + ".captured-p1 {\n");
@@ -93,16 +99,16 @@ public class GenerateBingoCard {
   }
   private static void generateBorderTileDefinitions(StringBuffer htmlOutput) {
     htmlOutput.append(STYLE_INDENT + ".border-column {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_QRTR + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_FULL + "px;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".border-diagonal {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + BORDER_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + BORDER_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_QRTR + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_QRTR + "px;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".border-row {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + BORDER_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_FULL + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_QRTR + "px;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
   }
   private static void generateBorderTilePlayersDefault(StringBuffer htmlOutput) {
@@ -142,8 +148,8 @@ public class GenerateBingoCard {
 
   private static void generateBingoTileCss(StringBuffer htmlOutput) {
     htmlOutput.append(STYLE_INDENT + ".bingo-tile {\n");
-    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_SIZE + "px;\n");
-    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_SIZE + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  height: " + TILE_CELL_FULL + "px;\n");
+    htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_FULL + "px;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".bingo-tile-background {\n");
     htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + ";\n");
@@ -231,10 +237,10 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "  relativeY = event.clientY - element.getBoundingClientRect().top;\n");
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "  sum = relativeX + relativeY;\n");
-    htmlOutput.append(SCRIPT_INDENT + "  withinX = (0 < relativeX) && (relativeX <= " + TILE_CELL_SIZE + ");\n");
-    htmlOutput.append(SCRIPT_INDENT + "  withinY = (0 < relativeY) && (relativeY <= " + TILE_CELL_SIZE + ");\n");
-    htmlOutput.append(SCRIPT_INDENT + "  player1 = (sum < " + TILE_CELL_SIZE + ") && withinX && withinY;\n");
-    htmlOutput.append(SCRIPT_INDENT + "  player2 = (sum > " + TILE_CELL_SIZE + ") && withinX && withinY;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  withinX = (0 < relativeX) && (relativeX <= " + TILE_CELL_FULL + ");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  withinY = (0 < relativeY) && (relativeY <= " + TILE_CELL_FULL + ");\n");
+    htmlOutput.append(SCRIPT_INDENT + "  player1 = (sum < " + TILE_CELL_FULL + ") && withinX && withinY;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  player2 = (sum > " + TILE_CELL_FULL + ") && withinX && withinY;\n");
     htmlOutput.append("\n");
     htmlOutput.append(SCRIPT_INDENT + "  if (player1) {\n");
     htmlOutput.append(SCRIPT_INDENT + "    return PlayerType.P1;\n");
@@ -340,6 +346,11 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "}\n");
   }
   private static void generateJsFunctionBingoTileMouse(StringBuffer htmlOutput) {
+    final int HALF_45_P1 = (int)(TILE_CELL_HALF * Math.sqrt(2));
+    final int HALF_45_P2 = (int)(TILE_CELL_FULL * Math.sqrt(2)) - HALF_45_P1;
+    final String linearGradient = String.format("  var tileBackground = \"linear-gradient(135deg, \" + colorP1 + \" 0px, \" + colorP1 + \" %dpx, #%06X %dpx, #%06X %dpx, \" + colorP2 + \" %dpx, \" + colorP2 + \" %dpx)\";\n",
+    (HALF_45_P1), COLOR_BINGO_TILE_DEFAULT, (HALF_45_P1 + 1), COLOR_BINGO_TILE_DEFAULT, (HALF_45_P2 + 2), (HALF_45_P2 + 3), TILE_CELL_SQRT); // These offsets of +1 +2 etc. are just what looks best to me
+
     htmlOutput.append(SCRIPT_INDENT + "function mouseBingoTile(element, event) {\n");
     htmlOutput.append(SCRIPT_INDENT + "  var playerType = classifyPlayer(element, event);\n");
     htmlOutput.append("\n");
@@ -352,7 +363,7 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "    colorP2 = Player2Colors.HIGHLIGHT;\n");
     htmlOutput.append(SCRIPT_INDENT + "  }\n");
     htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + "  var tileBackground = \"linear-gradient(135deg, \" + colorP1 + \" 0px, \" + colorP1 + \" 68px, #" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + " 69px, #" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + " 70px, \" + colorP2 + \" 71px, \" + colorP2 + \" 140px)\";\n");
+    htmlOutput.append(SCRIPT_INDENT + linearGradient);
     htmlOutput.append(SCRIPT_INDENT + "  element.style.background = tileBackground;\n");
     htmlOutput.append(SCRIPT_INDENT + "}\n");
   }
@@ -549,30 +560,48 @@ public class GenerateBingoCard {
   private static void generateSvgDefs(StringBuffer htmlOutput) {
     final String INDENT = "    ";
 
+    final int BORDER_NONE = STROKE_WIDTH_HALF;
+    final int BORDER_QRTR = (TILE_CELL_QRTR - STROKE_WIDTH_HALF);
+    final int BORDER_FULL = (TILE_CELL_FULL - STROKE_WIDTH_HALF);
+
+    final String POINTS_COLUMN = String.format("%d,%d %d,%d %d,%d %d,%d", BORDER_NONE,BORDER_NONE, BORDER_FULL,BORDER_NONE, BORDER_FULL,BORDER_QRTR, BORDER_NONE,BORDER_QRTR);
+    final String BORDER_DIAGONAL = String.format("%d,%d %d,%d %d,%d %d,%d", BORDER_NONE,BORDER_NONE, BORDER_QRTR,BORDER_NONE, BORDER_QRTR,BORDER_QRTR, BORDER_NONE,BORDER_QRTR);
+    final String POINTS_ROW = String.format("%d,%d %d,%d %d,%d %d,%d", BORDER_NONE,BORDER_NONE, BORDER_QRTR,BORDER_NONE, BORDER_QRTR,BORDER_FULL, BORDER_NONE,BORDER_FULL);
+
+    final int BINGO_P1_NONE = STROKE_WIDTH_HALF;
+    final int BINGO_P1_HALF = (TILE_CELL_HALF - STROKE_WIDTH_HALF);
+    final int BINGO_P1_FULL = (TILE_CELL_FULL - (STROKE_WIDTH_FULL + STROKE_WIDTH_HALF));
+
+    final int BINGO_P2_NONE = (TILE_CELL_FULL - STROKE_WIDTH_HALF);
+    final int BINGO_P2_HALF = (TILE_CELL_HALF + STROKE_WIDTH_HALF);
+    final int BINGO_P2_FULL = (STROKE_WIDTH_FULL + STROKE_WIDTH_HALF);
+
+    final String POINTS_P1_CAPTURED = String.format("%d,%d %d,%d %d,%d", BINGO_P1_NONE,BINGO_P1_NONE, BINGO_P1_FULL,BINGO_P1_NONE, BINGO_P1_NONE,BINGO_P1_FULL);
+    final String POINTS_P1_RESTRICTED = String.format("%d,%d %d,%d %d,%d %d,%d %d,%d", BINGO_P1_NONE,BINGO_P1_NONE, BINGO_P1_FULL,BINGO_P1_NONE, BINGO_P1_NONE,BINGO_P1_FULL, BINGO_P1_NONE,BINGO_P1_NONE, BINGO_P1_HALF,BINGO_P1_HALF);
+    final String POINTS_P2_CAPTURED = String.format("%d,%d %d,%d %d,%d", BINGO_P2_NONE,BINGO_P2_NONE, BINGO_P2_FULL,BINGO_P2_NONE, BINGO_P2_NONE,BINGO_P2_FULL);
+    final String POINTS_P2_RESTRICTED = String.format("%d,%d %d,%d %d,%d %d,%d %d,%d", BINGO_P2_NONE,BINGO_P2_NONE, BINGO_P2_FULL,BINGO_P2_NONE, BINGO_P2_NONE,BINGO_P2_FULL, BINGO_P2_NONE,BINGO_P2_NONE, BINGO_P2_HALF,BINGO_P2_HALF);
+
     htmlOutput.append(INDENT + "<svg class=\"not-visible\">\n");
     htmlOutput.append(INDENT + "  <defs>\n");
     htmlOutput.append(INDENT + "    <polygon id=\"empty\" points=\"\" />\n");
-
-    // TODO: Re-write these as a function of TILE_CELL_SIZE and stroke-width
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"column-p1\" class=\"border-column outline captured-p1\" points=\"2,2 94,2 94,22, 2,22\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"column-p2\" class=\"border-column outline captured-p2\" points=\"2,2 94,2 94,22, 2,22\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"column-restricted\" class=\"border-column outline restricted\" points=\"2,2 94,2 94,22, 2,22\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column-p1\" class=\"border-column outline captured-p1\" points=\"" + POINTS_COLUMN +"\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column-p2\" class=\"border-column outline captured-p2\" points=\"" + POINTS_COLUMN +"\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column-restricted\" class=\"border-column outline restricted\" points=\"" + POINTS_COLUMN +"\" />\n");
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p1\" class=\"border-diagonal outline captured-p1\" points=\"2,2 22,2 22,22, 2,22\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p2\" class=\"border-diagonal outline captured-p2\" points=\"2,2 22,2 22,22, 2,22\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-restricted\" class=\"border-diagonal outline restricted\" points=\"2,2 22,2 22,22, 2,22\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p1\" class=\"border-diagonal outline captured-p1\" points=\"" + BORDER_DIAGONAL +"\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p2\" class=\"border-diagonal outline captured-p2\" points=\"" + BORDER_DIAGONAL +"\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-restricted\" class=\"border-diagonal outline restricted\" points=\"" + BORDER_DIAGONAL +"\" />\n");
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"row-p1\" class=\"border-row outline captured-p1\" points=\"2,2 22,2 22,94, 2,94\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"row-p2\" class=\"border-row outline captured-p2\" points=\"2,2 22,2 22,94, 2,94\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"row-restricted\" class=\"border-row outline restricted\" points=\"2,2 22,2 22,94, 2,94\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row-p1\" class=\"border-row outline captured-p1\" points=\"" + POINTS_ROW + "\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row-p2\" class=\"border-row outline captured-p2\" points=\"" + POINTS_ROW + "\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row-restricted\" class=\"border-row outline restricted\" points=\"" + POINTS_ROW + "\" />\n");
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-met\" class=\"bingo-tile outline captured-p1\" points=\"2,2 92,2, 2,92\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-cannot-be-met\" class=\"bingo-tile outline restricted\" points=\"2,2, 92,2, 2,92, 2,2 46,46\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-met\" class=\"bingo-tile outline captured-p1\" points=\"" + POINTS_P1_CAPTURED + "\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-cannot-be-met\" class=\"bingo-tile outline restricted\" points=\"" + POINTS_P1_RESTRICTED + "\" />\n");
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"p2-goal-met\" class=\"bingo-tile outline captured-p2\" points=\"94,94, 6,94 94,6\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"p2-goal-cannot-be-met\" class=\"bingo-tile outline restricted\" points=\"94,94, 6,94 94,6, 94,94, 50,50\" />\n");
-
+    htmlOutput.append(INDENT + "    <polygon id=\"p2-goal-met\" class=\"bingo-tile outline captured-p2\" points=\"" + POINTS_P2_CAPTURED + "\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"p2-goal-cannot-be-met\" class=\"bingo-tile outline restricted\" points=\"" + POINTS_P2_RESTRICTED + "\" />\n");
     htmlOutput.append(INDENT + "  </defs>\n");
     htmlOutput.append(INDENT + "</svg>\n");
   }
@@ -634,12 +663,12 @@ public class GenerateBingoCard {
     String stateDiv = String.format("    <div id=\"state-div\"  class=\"border-%s child-div\">\n", borderType);
     String outlinesDiv = String.format("    <div id=\"outline-div\" class=\"border-%s child-div\">\n", borderType);
 
-    int width = BORDER_CELL_SIZE;
-    int height = BORDER_CELL_SIZE;
+    int width = TILE_CELL_QRTR;
+    int height = TILE_CELL_QRTR;
     if ("column".equals(borderType)) {
-      width = TILE_CELL_SIZE;
+      width = TILE_CELL_FULL;
     } else if ("row".equals(borderType)) {
-      height = TILE_CELL_SIZE;
+      height = TILE_CELL_FULL;
     }
     String svg = String.format("      <svg id=\"outline\" width=\"%dpx\" height=\"%dpx\">\n", width, height);
 
@@ -648,7 +677,6 @@ public class GenerateBingoCard {
     htmlOutput.append(INDENT + parentDiv);
     htmlOutput.append(INDENT + stateDiv);
     htmlOutput.append(INDENT + "      <form id=\"form\"  class=\"not-visible\">\n");
-    // htmlOutput.append(INDENT + "        <input id=\"player\" type=\"hidden\" value=\"0\" />\n");
     htmlOutput.append(INDENT + "        <input id=\"required\" type=\"hidden\" value=\"0\" />\n");
     htmlOutput.append(INDENT + "      </form>\n");
     htmlOutput.append(INDENT + "    </div>\n");
@@ -665,7 +693,7 @@ public class GenerateBingoCard {
     String rowAndColumn = String.format("<!-- r%d-c%d -->\n", row, col);
     int tileNumber = (BINGO_SIZE * (row - 1)) + (col - 1);
     String td = String.format(" <td id=\"tile-%d\" class=\"bingo-tile bingo-tile-background\" onclick=\"clickBingoTile(this, event)\" onmouseenter=\"mouseBingoTile(this, event)\" onmousemove=\"mouseBingoTile(this, event)\" onmouseleave=\"mouseBingoTile(this, event)\">\n", tileNumber);
-    String svg = String.format("      <svg id=\"outlines\" width=\"%dpx\" height=\"%dpx\">\n", TILE_CELL_SIZE, TILE_CELL_SIZE);
+    String svg = String.format("      <svg id=\"outlines\" width=\"%dpx\" height=\"%dpx\">\n", TILE_CELL_FULL, TILE_CELL_FULL);
     String text = String.format("    <div id=\"text-div\" class=\"bingo-tile child-div bingo-tile-text\">R%d C%d</div>\n", row, col);
 
     final String INDENT = "          ";
