@@ -13,15 +13,14 @@ public class GenerateBingoCard {
   private static final int TILE_CELL_FULL = 2 * TILE_CELL_HALF;
   private static final int TILE_CELL_SQRT = 3 * TILE_CELL_HALF; // 1.50x, which is greater than the needed 1.41x
 
-  private static final long COLOR_BINGO_TILE_DEFAULT = 0x000000;
-  private static final long COLOR_REQUIRED = 0x2F2F2F;
+  private static final long COLOR_BACKGROUND = 0x2F2F2F;
+  private static final long COLOR_BINGO_TILE = 0x000000;
+  private static final long COLOR_BINGO_TILE_TEXT = 0xC0A000;
+  private static final long COLOR_P1 = 0xA000C0;
+  private static final long COLOR_P2 = 0x00C020;
   private static final long COLOR_RESTRICTED = 0xE02040;
-  private static final long COLOR_TEXT = 0xC0A000;
 
-  private static final PlayerColors P1 = new PlayerColors(0xA000C0, 0xC020E0);
-  private static final PlayerColors P2 = new PlayerColors(0x00C020, 0x20E040);
-
-  private static final String HIGHLIGHT_OPACITY = "0.375";
+  private static final String HIGHLIGHT_OPACITY = "0.25";
   private static final String STYLE_INDENT = "        ";
   private static final String SCRIPT_INDENT = "        ";
 
@@ -64,7 +63,7 @@ public class GenerateBingoCard {
   }
   private static void generateCommonCss(StringBuffer htmlOutput) {
     htmlOutput.append(STYLE_INDENT + ".background {\n");
-    htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", COLOR_REQUIRED) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", COLOR_BACKGROUND) + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
 
     htmlOutput.append(STYLE_INDENT + ".child-div {\n");
@@ -80,10 +79,13 @@ public class GenerateBingoCard {
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append("\n");
     htmlOutput.append(STYLE_INDENT + ".captured-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P1.getColorDefault()) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", COLOR_P1) + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".captured-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", P2.getColorDefault()) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", COLOR_P2) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "}\n");
+    htmlOutput.append(STYLE_INDENT + ".required {\n");
+    htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", COLOR_BACKGROUND) + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".restricted {\n");
     htmlOutput.append(STYLE_INDENT + "  stroke: #" + String.format("%06X", COLOR_RESTRICTED) + ";\n");
@@ -113,36 +115,20 @@ public class GenerateBingoCard {
   }
   private static void generateBorderTilePlayersDefault(StringBuffer htmlOutput) {
     htmlOutput.append(STYLE_INDENT + ".border-default-p1 {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P1.getColorDefault()));
+    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", COLOR_P1));
     htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-default-p1:hover {\n");
-    htmlOutput.append(STYLE_INDENT + "  opacity: " + HIGHLIGHT_OPACITY + ";\n");
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append("\n");
     htmlOutput.append(STYLE_INDENT + ".border-default-p2 {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", P2.getColorDefault()));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-default-p2:hover {\n");
-    htmlOutput.append(STYLE_INDENT + "  opacity: " + HIGHLIGHT_OPACITY + ";\n");
+    htmlOutput.append(STYLE_INDENT + String.format("  background: #%06X;\n", COLOR_P2));
     htmlOutput.append(STYLE_INDENT + "}\n");
   }
   private static void generateBorderTilePlayersRequired(StringBuffer htmlOutput) {
     htmlOutput.append(STYLE_INDENT + ".border-required-p1 {\n");
     htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_REQUIRED, COLOR_REQUIRED, P1.getColorDefault(), COLOR_REQUIRED, COLOR_REQUIRED));
+      COLOR_P1, COLOR_P1, COLOR_BACKGROUND, COLOR_P1, COLOR_P1));
     htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-required-p1:hover {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_REQUIRED, COLOR_REQUIRED, P1.getColorHighlight(), COLOR_REQUIRED, COLOR_REQUIRED));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append("\n");
     htmlOutput.append(STYLE_INDENT + ".border-required-p2 {\n");
     htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_REQUIRED, COLOR_REQUIRED, P2.getColorDefault(), COLOR_REQUIRED, COLOR_REQUIRED));
-    htmlOutput.append(STYLE_INDENT + "}\n");
-    htmlOutput.append(STYLE_INDENT + ".border-required-p2:hover {\n");
-    htmlOutput.append(STYLE_INDENT + String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_REQUIRED, COLOR_REQUIRED, P2.getColorHighlight(), COLOR_REQUIRED, COLOR_REQUIRED));
+      COLOR_P2, COLOR_P2, COLOR_BACKGROUND, COLOR_P2, COLOR_P2));
     htmlOutput.append(STYLE_INDENT + "}\n");
   }
 
@@ -152,10 +138,10 @@ public class GenerateBingoCard {
     htmlOutput.append(STYLE_INDENT + "  width: " + TILE_CELL_FULL + "px;\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".bingo-tile-background {\n");
-    htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", COLOR_BINGO_TILE_DEFAULT) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  background-color: #" + String.format("%06X", COLOR_BINGO_TILE) + ";\n");
     htmlOutput.append(STYLE_INDENT + "}\n");
     htmlOutput.append(STYLE_INDENT + ".bingo-tile-text {\n");
-    htmlOutput.append(STYLE_INDENT + "  color: #" + String.format("%06X", COLOR_TEXT) + ";\n");
+    htmlOutput.append(STYLE_INDENT + "  color: #" + String.format("%06X", COLOR_BINGO_TILE_TEXT) + ";\n");
     htmlOutput.append(STYLE_INDENT + "  display: grid;\n");
     htmlOutput.append(STYLE_INDENT + "  place-items:center;\n");
     htmlOutput.append(STYLE_INDENT + "  text-align: center;\n");
@@ -166,20 +152,52 @@ public class GenerateBingoCard {
 
   private static void generateJs(StringBuffer htmlOutput) {
     htmlOutput.append("      <script>\n");
-    generateJsConstants(htmlOutput);
+    generateJsCommon(htmlOutput);
     htmlOutput.append("\n");
-    generateJsFunctionsSingleTile(htmlOutput);
+    generateJsFunctionsMouse(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionsClick(htmlOutput);
     htmlOutput.append("\n");
     generateJsFunctionsMultiTile(htmlOutput);
     htmlOutput.append("      </script>\n");
   }
 
+  private static void generateJsCommon(StringBuffer htmlOutput) {
+    generateJsConstants(htmlOutput);
+    generateJsFunctionClickType(htmlOutput);
+    generateJsFunctionPlayerType(htmlOutput);
+  }
+  private static void generateJsFunctionsMouse(StringBuffer htmlOutput) {
+    generateJsFunctionBorderTileMouse(htmlOutput);
+    generateJsFunctionBingoTileMouse(htmlOutput);
+    generateJsFunctionHighlightBingoTile(htmlOutput);
+  }
+  private static void generateJsFunctionsClick(StringBuffer htmlOutput) {
+    generateJsFunctionBorderTileClick(htmlOutput);
+    generateJsFunctionBingoTileClick(htmlOutput);
+    generateJsFunctionAdvanceTileState(htmlOutput);
+  }
+  private static void generateJsFunctionsMultiTile(StringBuffer htmlOutput) {
+    generateJsFunctionUpdateBingos(htmlOutput);
+    generateJsFunctionUpdateBingo(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionNewBorderStatus(htmlOutput);
+    generateJsFunctionBingoStatus(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionOutlineName(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionBorderId(htmlOutput);
+    htmlOutput.append("\n");
+    generateJsFunctionUpdateBorderOutline(htmlOutput);
+  }
+
   private static void generateJsConstants(StringBuffer htmlOutput) {
     final String BINGO_SIZE_JS = String.format("const BingoSize = %d;\n", BINGO_SIZE);
     final String BINGO_TYPES = String.format("const BingoTypes = { COLUMN: %d, ROW: 1, TL_BR: %d, TR_BL: %d };\n", BINGO_SIZE, (BINGO_SIZE + 1), (BINGO_SIZE - 1));
-    final String DEFAULT = getRgba(COLOR_BINGO_TILE_DEFAULT, "1");
-    final String P1_HIGHLIGHT = getRgba(P1.getColorHighlight(), HIGHLIGHT_OPACITY);
-    final String P2_HIGHLIGHT = getRgba(P2.getColorHighlight(), HIGHLIGHT_OPACITY);
+    final String DEFAULT = getRgba(COLOR_BINGO_TILE, "1");
+    final String P1_HIGHLIGHT = getRgba(COLOR_P1, HIGHLIGHT_OPACITY);
+    final String P2_HIGHLIGHT = getRgba(COLOR_P2, HIGHLIGHT_OPACITY);
+
     final String P1_COLORS = String.format("const Player1Colors = { DEFAULT : \"%s\", HIGHLIGHT : \"%s\" };\n", DEFAULT, P1_HIGHLIGHT);
     final String P2_COLORS = String.format("const Player2Colors = { DEFAULT : \"%s\", HIGHLIGHT : \"%s\" };\n", DEFAULT, P2_HIGHLIGHT);
 
@@ -207,17 +225,6 @@ public class GenerateBingoCard {
 
     return String.format("rgba(%d, %d, %d, %s)", r, g, b, alpha);
   }
-
-  private static void generateJsFunctionsSingleTile(StringBuffer htmlOutput) {
-    generateJsFunctionClickType(htmlOutput);
-    generateJsFunctionPlayerType(htmlOutput);
-    htmlOutput.append("\n");
-    generateJsFunctionBorderTileClick(htmlOutput);
-    generateJsFunctionBingoTileClick(htmlOutput);
-    generateJsFunctionAdvanceTileState(htmlOutput);
-    generateJsFunctionBingoTileMouse(htmlOutput);
-  }
-
   private static void generateJsFunctionClickType(StringBuffer htmlOutput) {
     htmlOutput.append(SCRIPT_INDENT + "function classifyClick(event) {\n");
     htmlOutput.append(SCRIPT_INDENT + "  if (event.ctrlKey) {\n");
@@ -249,6 +256,92 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "  } else {\n");
     htmlOutput.append(SCRIPT_INDENT + "    return PlayerType.NONE;\n");
     htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+
+
+  private static void generateJsFunctionBorderTileMouse(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function mouseBorderTile(element, highlight) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var borderId = element.id;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var borderNumber = parseInt(borderId.substring(\"border-\".length));\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var playerType;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (borderNumber < (2 * BingoTypes.TL_BR)) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    playerType = PlayerType.P1;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  } else {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    playerType = PlayerType.P2;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var modDiagonal = borderNumber % BingoTypes.TL_BR;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var divDiagonal = Math.floor(borderNumber / BingoTypes.TL_BR);\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var start;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var delta;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (modDiagonal == 0) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    if ((divDiagonal % 2) == 0) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "      delta = BingoTypes.TR_BL;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      start = BingoTypes.TR_BL;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    } else {\n");
+    htmlOutput.append(SCRIPT_INDENT + "      delta = BingoTypes.TL_BR;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      start = 0;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    }\n");
+    htmlOutput.append(SCRIPT_INDENT + "  } else {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    if ((divDiagonal % 2) == 0) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "      delta = BingoTypes.ROW;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      if (playerType == PlayerType.P1) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "        start = (BingoTypes.COLUMN - modDiagonal) * BingoTypes.COLUMN;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      } else { // PlayerType.P2\n");
+    htmlOutput.append(SCRIPT_INDENT + "        start = (modDiagonal - BingoTypes.ROW) * BingoTypes.COLUMN;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      }\n");
+    htmlOutput.append(SCRIPT_INDENT + "    } else {\n");
+    htmlOutput.append(SCRIPT_INDENT + "      delta = BingoTypes.COLUMN;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      if (playerType == PlayerType.P1) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "        start = (modDiagonal - BingoTypes.ROW) * BingoTypes.ROW;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      } else { // PlayerType.P2\n");
+    htmlOutput.append(SCRIPT_INDENT + "        start = (BingoTypes.COLUMN - modDiagonal) * BingoTypes.ROW;\n");
+    htmlOutput.append(SCRIPT_INDENT + "      }\n");
+    htmlOutput.append(SCRIPT_INDENT + "    }\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (!highlight) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    playerType = PlayerType.NONE;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var counter = 0;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var tileNumberLoop = start;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  while (counter < BingoSize) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    var workingTile = document.getElementById(\"tile-\" + tileNumberLoop);\n");
+    htmlOutput.append(SCRIPT_INDENT + "    highlightBingoTile(workingTile, playerType);\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "    counter++;\n");
+    htmlOutput.append(SCRIPT_INDENT + "    tileNumberLoop += delta;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+  private static void generateJsFunctionBingoTileMouse(StringBuffer htmlOutput) {
+    htmlOutput.append(SCRIPT_INDENT + "function mouseBingoTile(element, event) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var playerType = classifyPlayer(element, event);\n");
+    htmlOutput.append(SCRIPT_INDENT + "  highlightBingoTile(element, playerType);\n");
+    htmlOutput.append(SCRIPT_INDENT + "}\n");
+  }
+  private static void generateJsFunctionHighlightBingoTile(StringBuffer htmlOutput) {
+    final int HALF_45_P1 = (int)(TILE_CELL_HALF * Math.sqrt(2));
+    final int HALF_45_P2 = (int)(TILE_CELL_FULL * Math.sqrt(2)) - HALF_45_P1;
+    final String linearGradient = String.format("  var tileBackground = \"linear-gradient(135deg, \" + colorP1 + \" 0px, \" + colorP1 + \" %dpx, #%06X %dpx, #%06X %dpx, \" + colorP2 + \" %dpx, \" + colorP2 + \" %dpx)\";\n",
+    (HALF_45_P1), COLOR_BINGO_TILE, (HALF_45_P1 + 1), COLOR_BINGO_TILE, (HALF_45_P2 + 2), (HALF_45_P2 + 3), TILE_CELL_SQRT); // These offsets of +1 +2 etc. are just what looks best to me
+
+    htmlOutput.append(SCRIPT_INDENT + "function highlightBingoTile(element, playerType) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var colorP1 = Player1Colors.DEFAULT;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  var colorP2 = Player2Colors.DEFAULT;\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + "  if (playerType == PlayerType.P1) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    colorP1 = Player1Colors.HIGHLIGHT;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  } else if (playerType == PlayerType.P2) {\n");
+    htmlOutput.append(SCRIPT_INDENT + "    colorP2 = Player2Colors.HIGHLIGHT;\n");
+    htmlOutput.append(SCRIPT_INDENT + "  }\n");
+    htmlOutput.append("\n");
+    htmlOutput.append(SCRIPT_INDENT + linearGradient);
+    htmlOutput.append(SCRIPT_INDENT + "  element.style.background = tileBackground;\n");
     htmlOutput.append(SCRIPT_INDENT + "}\n");
   }
 
@@ -345,42 +438,6 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "  outline.attributes.setNamedItem(svgHref);\n");
     htmlOutput.append(SCRIPT_INDENT + "}\n");
   }
-  private static void generateJsFunctionBingoTileMouse(StringBuffer htmlOutput) {
-    final int HALF_45_P1 = (int)(TILE_CELL_HALF * Math.sqrt(2));
-    final int HALF_45_P2 = (int)(TILE_CELL_FULL * Math.sqrt(2)) - HALF_45_P1;
-    final String linearGradient = String.format("  var tileBackground = \"linear-gradient(135deg, \" + colorP1 + \" 0px, \" + colorP1 + \" %dpx, #%06X %dpx, #%06X %dpx, \" + colorP2 + \" %dpx, \" + colorP2 + \" %dpx)\";\n",
-    (HALF_45_P1), COLOR_BINGO_TILE_DEFAULT, (HALF_45_P1 + 1), COLOR_BINGO_TILE_DEFAULT, (HALF_45_P2 + 2), (HALF_45_P2 + 3), TILE_CELL_SQRT); // These offsets of +1 +2 etc. are just what looks best to me
-
-    htmlOutput.append(SCRIPT_INDENT + "function mouseBingoTile(element, event) {\n");
-    htmlOutput.append(SCRIPT_INDENT + "  var playerType = classifyPlayer(element, event);\n");
-    htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + "  var colorP1 = Player1Colors.DEFAULT;\n");
-    htmlOutput.append(SCRIPT_INDENT + "  var colorP2 = Player2Colors.DEFAULT;\n");
-    htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + "  if (playerType == PlayerType.P1) {\n");
-    htmlOutput.append(SCRIPT_INDENT + "    colorP1 = Player1Colors.HIGHLIGHT;\n");
-    htmlOutput.append(SCRIPT_INDENT + "  } else if (playerType == PlayerType.P2) {\n");
-    htmlOutput.append(SCRIPT_INDENT + "    colorP2 = Player2Colors.HIGHLIGHT;\n");
-    htmlOutput.append(SCRIPT_INDENT + "  }\n");
-    htmlOutput.append("\n");
-    htmlOutput.append(SCRIPT_INDENT + linearGradient);
-    htmlOutput.append(SCRIPT_INDENT + "  element.style.background = tileBackground;\n");
-    htmlOutput.append(SCRIPT_INDENT + "}\n");
-  }
-
-  private static void generateJsFunctionsMultiTile(StringBuffer htmlOutput) {
-    generateJsFunctionUpdateBingos(htmlOutput);
-    generateJsFunctionUpdateBingo(htmlOutput);
-    htmlOutput.append("\n");
-    generateJsFunctionNewBorderStatus(htmlOutput);
-    generateJsFunctionBingoStatus(htmlOutput);
-    htmlOutput.append("\n");
-    generateJsFunctionOutlineName(htmlOutput);
-    htmlOutput.append("\n");
-    generateJsFunctionBorderId(htmlOutput);
-    htmlOutput.append("\n");
-    generateJsFunctionUpdateBorderOutline(htmlOutput);
-  }
 
   private static void generateJsFunctionUpdateBingos(StringBuffer htmlOutput) {
     htmlOutput.append(SCRIPT_INDENT + "function updateBingos(tileId, player) {\n");
@@ -408,7 +465,6 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "  updateBorderOutline(borderId, outlineName);\n");
     htmlOutput.append(SCRIPT_INDENT + "}\n");
   }
-
   private static void generateJsFunctionNewBorderStatus(StringBuffer htmlOutput) {
     htmlOutput.append(SCRIPT_INDENT + "function getNewBorderStatus (start, delta, player) {\n");
     htmlOutput.append(SCRIPT_INDENT + "  var notMet = false;\n");
@@ -456,7 +512,6 @@ public class GenerateBingoCard {
     htmlOutput.append(SCRIPT_INDENT + "  }\n");
     htmlOutput.append(SCRIPT_INDENT + "}\n");
   }
-
   private static void generateJsFunctionOutlineName(StringBuffer htmlOutput) {
     htmlOutput.append(SCRIPT_INDENT + "function getOutlineName(newStatus, delta, player) {\n");
     htmlOutput.append(SCRIPT_INDENT + "  var outlineName = \"#empty\";\n");
@@ -585,16 +640,16 @@ public class GenerateBingoCard {
     htmlOutput.append(INDENT + "  <defs>\n");
     htmlOutput.append(INDENT + "    <polygon id=\"empty\" points=\"\" />\n");
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"column-p1\" class=\"border-column outline captured-p1\" points=\"" + POINTS_COLUMN +"\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"column-p2\" class=\"border-column outline captured-p2\" points=\"" + POINTS_COLUMN +"\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column-p1\" class=\"border-column outline required\" points=\"" + POINTS_COLUMN +"\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"column-p2\" class=\"border-column outline required\" points=\"" + POINTS_COLUMN +"\" />\n");
     htmlOutput.append(INDENT + "    <polygon id=\"column-restricted\" class=\"border-column outline restricted\" points=\"" + POINTS_COLUMN +"\" />\n");
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p1\" class=\"border-diagonal outline captured-p1\" points=\"" + BORDER_DIAGONAL +"\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p2\" class=\"border-diagonal outline captured-p2\" points=\"" + BORDER_DIAGONAL +"\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p1\" class=\"border-diagonal outline required\" points=\"" + BORDER_DIAGONAL +"\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"diagonal-p2\" class=\"border-diagonal outline required\" points=\"" + BORDER_DIAGONAL +"\" />\n");
     htmlOutput.append(INDENT + "    <polygon id=\"diagonal-restricted\" class=\"border-diagonal outline restricted\" points=\"" + BORDER_DIAGONAL +"\" />\n");
     htmlOutput.append("\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"row-p1\" class=\"border-row outline captured-p1\" points=\"" + POINTS_ROW + "\" />\n");
-    htmlOutput.append(INDENT + "    <polygon id=\"row-p2\" class=\"border-row outline captured-p2\" points=\"" + POINTS_ROW + "\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row-p1\" class=\"border-row outline required\" points=\"" + POINTS_ROW + "\" />\n");
+    htmlOutput.append(INDENT + "    <polygon id=\"row-p2\" class=\"border-row outline required\" points=\"" + POINTS_ROW + "\" />\n");
     htmlOutput.append(INDENT + "    <polygon id=\"row-restricted\" class=\"border-row outline restricted\" points=\"" + POINTS_ROW + "\" />\n");
     htmlOutput.append("\n");
     htmlOutput.append(INDENT + "    <polygon id=\"p1-goal-met\" class=\"bingo-tile outline captured-p1\" points=\"" + POINTS_P1_CAPTURED + "\" />\n");
@@ -657,7 +712,7 @@ public class GenerateBingoCard {
   }
 
   private static void generateBorderTile(StringBuffer htmlOutput, int borderId, String borderType, char player, String title) {
-    String th = String.format("<th id=\"border-%d\" class=\"border-%s border-default-p%c\" title=\"%s\" onclick=\"clickBorderTile(this, 'p%c')\">\n",
+    String th = String.format("<th id=\"border-%d\" class=\"border-%s border-default-p%c\" title=\"%s\" onclick=\"clickBorderTile(this, 'p%c')\" onmouseenter=\"mouseBorderTile(this, true)\" onmouseleave=\"mouseBorderTile(this, false)\">\n",
       borderId, borderType, player, title, player);
     String parentDiv = String.format("  <div id=\"parent-div\" class=\"border-%s\">\n", borderType);
     String stateDiv = String.format("    <div id=\"state-div\"  class=\"border-%s child-div\">\n", borderType);
@@ -715,22 +770,5 @@ public class GenerateBingoCard {
     htmlOutput.append(INDENT + text);
     htmlOutput.append(INDENT + "  </div>\n");
     htmlOutput.append(INDENT + "</td>\n");
-  }
-
-  private static class PlayerColors {
-    private long colorDefault;
-    private long colorHighlight;
-
-    PlayerColors(long colorDefault, long colorHighlight) {
-      this.colorDefault = colorDefault;
-      this.colorHighlight = colorHighlight;
-    }
-
-    long getColorDefault() {
-      return this.colorDefault;
-    }
-    long getColorHighlight() {
-      return this.colorHighlight; // still in use by borders when bingo row/column/diagonal is required
-    }
   }
 }

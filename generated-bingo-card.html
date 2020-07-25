@@ -25,6 +25,9 @@
         .captured-p2 {
           stroke: #00C020;
         }
+        .required {
+          stroke: #2F2F2F;
+        }
         .restricted {
           stroke: #E02040;
         }
@@ -45,29 +48,15 @@
         .border-default-p1 {
           background: #A000C0;
         }
-        .border-default-p1:hover {
-          opacity: 0.375;
-        }
-
         .border-default-p2 {
           background: #00C020;
         }
-        .border-default-p2:hover {
-          opacity: 0.375;
-        }
 
         .border-required-p1 {
-          background: radial-gradient(circle at center, #2F2F2F 0px, #2F2F2F 4px, #A000C0 7px, #2F2F2F 10px, #2F2F2F 100%);
+          background: radial-gradient(circle at center, #A000C0 0px, #A000C0 4px, #2F2F2F 7px, #A000C0 10px, #A000C0 100%);
         }
-        .border-required-p1:hover {
-          background: radial-gradient(circle at center, #2F2F2F 0px, #2F2F2F 4px, #C020E0 7px, #2F2F2F 10px, #2F2F2F 100%);
-        }
-
         .border-required-p2 {
-          background: radial-gradient(circle at center, #2F2F2F 0px, #2F2F2F 4px, #00C020 7px, #2F2F2F 10px, #2F2F2F 100%);
-        }
-        .border-required-p2:hover {
-          background: radial-gradient(circle at center, #2F2F2F 0px, #2F2F2F 4px, #20E040 7px, #2F2F2F 10px, #2F2F2F 100%);
+          background: radial-gradient(circle at center, #00C020 0px, #00C020 4px, #2F2F2F 7px, #00C020 10px, #00C020 100%);
         }
 
         .bingo-tile {
@@ -99,11 +88,10 @@
 
         const PlayerType = { NONE : "0", P1 : "1", P2 : "2" };
         Object.freeze(PlayerType);
-        const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(192, 32, 224, 0.375)" };
+        const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(160, 0, 192, 0.25)" };
         Object.freeze(Player1Colors);
-        const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(32, 224, 64, 0.375)" };
+        const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(0, 192, 32, 0.25)" };
         Object.freeze(Player2Colors);
-
         function classifyClick(event) {
           if (event.ctrlKey) {
             return ClickType.CONTROL;
@@ -132,6 +120,80 @@
           } else {
             return PlayerType.NONE;
           }
+        }
+
+        function mouseBorderTile(element, highlight) {
+          var borderId = element.id;
+          var borderNumber = parseInt(borderId.substring("border-".length));
+
+          var playerType;
+          if (borderNumber < (2 * BingoTypes.TL_BR)) {
+            playerType = PlayerType.P1;
+          } else {
+            playerType = PlayerType.P2;
+          }
+
+          var modDiagonal = borderNumber % BingoTypes.TL_BR;
+          var divDiagonal = Math.floor(borderNumber / BingoTypes.TL_BR);
+
+          var start;
+          var delta;
+          if (modDiagonal == 0) {
+            if ((divDiagonal % 2) == 0) {
+              delta = BingoTypes.TR_BL;
+              start = BingoTypes.TR_BL;
+            } else {
+              delta = BingoTypes.TL_BR;
+              start = 0;
+            }
+          } else {
+            if ((divDiagonal % 2) == 0) {
+              delta = BingoTypes.ROW;
+              if (playerType == PlayerType.P1) {
+                start = (BingoTypes.COLUMN - modDiagonal) * BingoTypes.COLUMN;
+              } else { // PlayerType.P2
+                start = (modDiagonal - BingoTypes.ROW) * BingoTypes.COLUMN;
+              }
+            } else {
+              delta = BingoTypes.COLUMN;
+              if (playerType == PlayerType.P1) {
+                start = (modDiagonal - BingoTypes.ROW) * BingoTypes.ROW;
+              } else { // PlayerType.P2
+                start = (BingoTypes.COLUMN - modDiagonal) * BingoTypes.ROW;
+              }
+            }
+          }
+
+          if (!highlight) {
+            playerType = PlayerType.NONE;
+          }
+
+          var counter = 0;
+          var tileNumberLoop = start;
+          while (counter < BingoSize) {
+            var workingTile = document.getElementById("tile-" + tileNumberLoop);
+            highlightBingoTile(workingTile, playerType);
+
+            counter++;
+            tileNumberLoop += delta;
+          }
+        }
+        function mouseBingoTile(element, event) {
+          var playerType = classifyPlayer(element, event);
+          highlightBingoTile(element, playerType);
+        }
+        function highlightBingoTile(element, playerType) {
+          var colorP1 = Player1Colors.DEFAULT;
+          var colorP2 = Player2Colors.DEFAULT;
+
+          if (playerType == PlayerType.P1) {
+            colorP1 = Player1Colors.HIGHLIGHT;
+          } else if (playerType == PlayerType.P2) {
+            colorP2 = Player2Colors.HIGHLIGHT;
+          }
+
+          var tileBackground = "linear-gradient(135deg, " + colorP1 + " 0px, " + colorP1 + " 67px, #000000 68px, #000000 70px, " + colorP2 + " 71px, " + colorP2 + " 144px)";
+          element.style.background = tileBackground;
         }
 
         function clickBorderTile(element, player) {
@@ -220,21 +282,6 @@
           }
 
           outline.attributes.setNamedItem(svgHref);
-        }
-        function mouseBingoTile(element, event) {
-          var playerType = classifyPlayer(element, event);
-
-          var colorP1 = Player1Colors.DEFAULT;
-          var colorP2 = Player2Colors.DEFAULT;
-
-          if (playerType == PlayerType.P1) {
-            colorP1 = Player1Colors.HIGHLIGHT;
-          } else if (playerType == PlayerType.P2) {
-            colorP2 = Player2Colors.HIGHLIGHT;
-          }
-
-          var tileBackground = "linear-gradient(135deg, " + colorP1 + " 0px, " + colorP1 + " 67px, #000000 68px, #000000 70px, " + colorP2 + " 71px, " + colorP2 + " 144px)";
-          element.style.background = tileBackground;
         }
 
         function updateBingos(tileId, player) {
@@ -391,16 +438,16 @@
       <defs>
         <polygon id="empty" points="" />
 
-        <polygon id="column-p1" class="border-column outline captured-p1" points="2,2 94,2 94,22 2,22" />
-        <polygon id="column-p2" class="border-column outline captured-p2" points="2,2 94,2 94,22 2,22" />
+        <polygon id="column-p1" class="border-column outline required" points="2,2 94,2 94,22 2,22" />
+        <polygon id="column-p2" class="border-column outline required" points="2,2 94,2 94,22 2,22" />
         <polygon id="column-restricted" class="border-column outline restricted" points="2,2 94,2 94,22 2,22" />
 
-        <polygon id="diagonal-p1" class="border-diagonal outline captured-p1" points="2,2 22,2 22,22 2,22" />
-        <polygon id="diagonal-p2" class="border-diagonal outline captured-p2" points="2,2 22,2 22,22 2,22" />
+        <polygon id="diagonal-p1" class="border-diagonal outline required" points="2,2 22,2 22,22 2,22" />
+        <polygon id="diagonal-p2" class="border-diagonal outline required" points="2,2 22,2 22,22 2,22" />
         <polygon id="diagonal-restricted" class="border-diagonal outline restricted" points="2,2 22,2 22,22 2,22" />
 
-        <polygon id="row-p1" class="border-row outline captured-p1" points="2,2 22,2 22,94 2,94" />
-        <polygon id="row-p2" class="border-row outline captured-p2" points="2,2 22,2 22,94 2,94" />
+        <polygon id="row-p1" class="border-row outline required" points="2,2 22,2 22,94 2,94" />
+        <polygon id="row-p2" class="border-row outline required" points="2,2 22,2 22,94 2,94" />
         <polygon id="row-restricted" class="border-row outline restricted" points="2,2 22,2 22,94 2,94" />
 
         <polygon id="p1-goal-met" class="bingo-tile outline captured-p1" points="2,2 90,2 2,90" />
@@ -413,7 +460,7 @@
 
     <table>
       <tr>
-          <th id="border-6" class="border-diagonal border-default-p1" title="P1 TL-BR" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-6" class="border-diagonal border-default-p1" title="P1 TL-BR" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
@@ -427,7 +474,7 @@
               </div>
             </div>
           </th>
-          <th id="border-7" class="border-column border-default-p1" title="P1 C1" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-7" class="border-column border-default-p1" title="P1 C1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -441,7 +488,7 @@
               </div>
             </div>
           </th>
-          <th id="border-8" class="border-column border-default-p1" title="P1 C2" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-8" class="border-column border-default-p1" title="P1 C2" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -455,7 +502,7 @@
               </div>
             </div>
           </th>
-          <th id="border-9" class="border-column border-default-p1" title="P1 C3" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-9" class="border-column border-default-p1" title="P1 C3" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -469,7 +516,7 @@
               </div>
             </div>
           </th>
-          <th id="border-10" class="border-column border-default-p1" title="P1 C4" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-10" class="border-column border-default-p1" title="P1 C4" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -483,7 +530,7 @@
               </div>
             </div>
           </th>
-          <th id="border-11" class="border-column border-default-p1" title="P1 C5" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-11" class="border-column border-default-p1" title="P1 C5" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -497,7 +544,7 @@
               </div>
             </div>
           </th>
-          <th id="border-12" class="border-diagonal border-default-p2" title="P2 TR-BL" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-12" class="border-diagonal border-default-p2" title="P2 TR-BL" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
@@ -513,7 +560,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-5" class="border-row border-default-p1" title="P1 R1" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-5" class="border-row border-default-p1" title="P1 R1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -617,7 +664,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R1 C5</div>
             </div>
           </td>
-          <th id="border-13" class="border-row border-default-p2" title="P2 R1" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-13" class="border-row border-default-p2" title="P2 R1" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -633,7 +680,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-4" class="border-row border-default-p1" title="P1 R2" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-4" class="border-row border-default-p1" title="P1 R2" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -737,7 +784,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R2 C5</div>
             </div>
           </td>
-          <th id="border-14" class="border-row border-default-p2" title="P2 R2" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-14" class="border-row border-default-p2" title="P2 R2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -753,7 +800,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-3" class="border-row border-default-p1" title="P1 R3" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-3" class="border-row border-default-p1" title="P1 R3" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -857,7 +904,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R3 C5</div>
             </div>
           </td>
-          <th id="border-15" class="border-row border-default-p2" title="P2 R3" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-15" class="border-row border-default-p2" title="P2 R3" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -873,7 +920,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-2" class="border-row border-default-p1" title="P1 R4" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-2" class="border-row border-default-p1" title="P1 R4" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -977,7 +1024,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R4 C5</div>
             </div>
           </td>
-          <th id="border-16" class="border-row border-default-p2" title="P2 R4" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-16" class="border-row border-default-p2" title="P2 R4" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -993,7 +1040,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-1" class="border-row border-default-p1" title="P1 R5" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-1" class="border-row border-default-p1" title="P1 R5" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -1097,7 +1144,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R5 C5</div>
             </div>
           </td>
-          <th id="border-17" class="border-row border-default-p2" title="P2 R5" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-17" class="border-row border-default-p2" title="P2 R5" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -1113,7 +1160,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-0" class="border-diagonal border-default-p1" title="P1 TR-BL" onclick="clickBorderTile(this, 'p1')">
+          <th id="border-0" class="border-diagonal border-default-p1" title="P1 TR-BL" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
@@ -1127,7 +1174,7 @@
               </div>
             </div>
           </th>
-          <th id="border-23" class="border-column border-default-p2" title="P2 C1" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-23" class="border-column border-default-p2" title="P2 C1" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1141,7 +1188,7 @@
               </div>
             </div>
           </th>
-          <th id="border-22" class="border-column border-default-p2" title="P2 C2" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-22" class="border-column border-default-p2" title="P2 C2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1155,7 +1202,7 @@
               </div>
             </div>
           </th>
-          <th id="border-21" class="border-column border-default-p2" title="P2 C3" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-21" class="border-column border-default-p2" title="P2 C3" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1169,7 +1216,7 @@
               </div>
             </div>
           </th>
-          <th id="border-20" class="border-column border-default-p2" title="P2 C4" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-20" class="border-column border-default-p2" title="P2 C4" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1183,7 +1230,7 @@
               </div>
             </div>
           </th>
-          <th id="border-19" class="border-column border-default-p2" title="P2 C5" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-19" class="border-column border-default-p2" title="P2 C5" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1197,7 +1244,7 @@
               </div>
             </div>
           </th>
-          <th id="border-18" class="border-diagonal border-default-p2" title="P2 TL-BR" onclick="clickBorderTile(this, 'p2')">
+          <th id="border-18" class="border-diagonal border-default-p2" title="P2 TL-BR" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
