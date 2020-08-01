@@ -1,466 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <title>Java Generated Sample Bingo Card</title>
-      <style>
-        .background {
-          background-color: #2F2F2F;
-        }
-        .child-div {
-          position: absolute;
-        }
-        .not-visible {
-          display: none;
-        }
-        .outline {
-          fill-opacity: 0.0;
-          stroke-opacity: 1.0;
-          stroke-width: 4;
-        }
-
-        .captured-p1 {
-          stroke: #A000C0;
-        }
-        .captured-p2 {
-          stroke: #00C020;
-        }
-        .required {
-          stroke: #2F2F2F;
-        }
-        .restricted {
-          stroke: #E02040;
-        }
-
-        .border-column {
-          height: 24px;
-          width: 96px;
-        }
-        .border-diagonal {
-          height: 24px;
-          width: 24px;
-        }
-        .border-row {
-          height: 96px;
-          width: 24px;
-        }
-
-        .border-default-p1 {
-          background: #A000C0;
-        }
-        .border-default-p2 {
-          background: #00C020;
-        }
-
-        .border-required-p1 {
-          background: radial-gradient(circle at center, #A000C0 0px, #A000C0 4px, #2F2F2F 7px, #A000C0 10px, #A000C0 100%);
-        }
-        .border-required-p2 {
-          background: radial-gradient(circle at center, #00C020 0px, #00C020 4px, #2F2F2F 7px, #00C020 10px, #00C020 100%);
-        }
-
-        .bingo-tile {
-          height: 96px;
-          width: 96px;
-        }
-        .bingo-tile-background {
-          background-color: #000000;
-        }
-        .bingo-tile-text {
-          color: #C0A000;
-          display: grid;
-          place-items:center;
-          text-align: center;
-          user-select: none;
-        }
-      </style>
-
-      <script>
-        const BingoSize = 5;
-        Object.freeze(BingoSize);
-        const BingoStates = { GOAL_NOT_MET : "0", GOAL_MET : "1", GOAL_CANNOT_BE_MET_ANYMORE : "2" };
-        Object.freeze(BingoStates);
-        const BingoTypes = { COLUMN: 5, ROW: 1, TL_BR: 6, TR_BL: 4 };
-        Object.freeze(BingoTypes);
-
-        const ClickType = { NORMAL : "0", SHIFT : "1", CONTROL : "2" };
-        Object.freeze(ClickType);
-
-        const PlayerType = { NONE : "0", P1 : "1", P2 : "2" };
-        Object.freeze(PlayerType);
-        const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(160, 0, 192, 0.25)" };
-        Object.freeze(Player1Colors);
-        const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(0, 192, 32, 0.25)" };
-        Object.freeze(Player2Colors);
-        function classifyClick(event) {
-          if (event.ctrlKey) {
-            return ClickType.CONTROL;
-          }
-
-          if (event.shiftKey) {
-            return ClickType.SHIFT;
-          }
-
-          return ClickType.NORMAL;
-        }
-        function classifyPlayer(element, event) {
-          relativeX = event.clientX - element.getBoundingClientRect().left;
-          relativeY = event.clientY - element.getBoundingClientRect().top;
-
-          sum = relativeX + relativeY;
-          withinX = (0 < relativeX) && (relativeX <= 96);
-          withinY = (0 < relativeY) && (relativeY <= 96);
-          player1 = (sum < 96) && withinX && withinY;
-          player2 = (sum > 96) && withinX && withinY;
-
-          if (player1) {
-            return PlayerType.P1;
-          } else if (player2) {
-            return PlayerType.P2;
-          } else {
-            return PlayerType.NONE;
-          }
-        }
-
-        function mouseBorderTile(element, highlight) {
-          var borderId = element.id;
-          var borderNumber = parseInt(borderId.substring("border-".length));
-
-          var playerType;
-          if (borderNumber < (2 * BingoTypes.TL_BR)) {
-            playerType = PlayerType.P1;
-          } else {
-            playerType = PlayerType.P2;
-          }
-
-          var modDiagonal = borderNumber % BingoTypes.TL_BR;
-          var divDiagonal = Math.floor(borderNumber / BingoTypes.TL_BR);
-
-          var start;
-          var delta;
-          if (modDiagonal == 0) {
-            if ((divDiagonal % 2) == 0) {
-              delta = BingoTypes.TR_BL;
-              start = BingoTypes.TR_BL;
-            } else {
-              delta = BingoTypes.TL_BR;
-              start = 0;
-            }
-          } else {
-            if ((divDiagonal % 2) == 0) {
-              delta = BingoTypes.ROW;
-              if (playerType == PlayerType.P1) {
-                start = (BingoTypes.COLUMN - modDiagonal) * BingoTypes.COLUMN;
-              } else { // PlayerType.P2
-                start = (modDiagonal - BingoTypes.ROW) * BingoTypes.COLUMN;
-              }
-            } else {
-              delta = BingoTypes.COLUMN;
-              if (playerType == PlayerType.P1) {
-                start = (modDiagonal - BingoTypes.ROW) * BingoTypes.ROW;
-              } else { // PlayerType.P2
-                start = (BingoTypes.COLUMN - modDiagonal) * BingoTypes.ROW;
-              }
-            }
-          }
-
-          if (!highlight) {
-            playerType = PlayerType.NONE;
-          }
-
-          var counter = 0;
-          var tileNumberLoop = start;
-          while (counter < BingoSize) {
-            var workingTile = document.getElementById("tile-" + tileNumberLoop);
-            highlightBingoTile(workingTile, playerType);
-
-            counter++;
-            tileNumberLoop += delta;
-          }
-        }
-        function mouseBingoTile(element, event) {
-          var playerType = classifyPlayer(element, event);
-          highlightBingoTile(element, playerType);
-        }
-        function highlightBingoTile(element, playerType) {
-          var colorP1 = Player1Colors.DEFAULT;
-          var colorP2 = Player2Colors.DEFAULT;
-
-          if (playerType == PlayerType.P1) {
-            colorP1 = Player1Colors.HIGHLIGHT;
-          } else if (playerType == PlayerType.P2) {
-            colorP2 = Player2Colors.HIGHLIGHT;
-          }
-
-          var tileBackground = "linear-gradient(135deg, " + colorP1 + " 0px, " + colorP1 + " 67px, #000000 68px, #000000 70px, " + colorP2 + " 71px, " + colorP2 + " 144px)";
-          element.style.background = tileBackground;
-        }
-
-        function clickBorderTile(element, player) {
-          var classList = element.classList;
-          var parentDiv = element.children.namedItem("parent-div");
-
-          var stateDiv = parentDiv.children.namedItem("state-div");
-          var form = stateDiv.children.namedItem("form");
-          var required = form.elements["required"];
-
-          if (required.value == "0") {
-            classList.remove("border-default-" + player);
-            classList.add("border-required-" + player);
-            required.value = "1";
-          } else {
-            classList.remove("border-required-" + player);
-            classList.add("border-default-" + player);
-            required.value = "0";
-          }
-        }
-        function clickBingoTile(element, event) {
-          var parentDiv = element.children.namedItem("parent-div");
-          var stateDiv = parentDiv.children.namedItem("state-div");
-          var svgsDiv = parentDiv.children.namedItem("outlines-div");
-
-          var form = stateDiv.children.namedItem("form");
-          var svg = svgsDiv.children.namedItem("outlines");
-
-          var clickType = classifyClick(event);
-          var playerType = classifyPlayer(element, event);
-          switch (playerType) {
-            case PlayerType.P1:
-              var state = form.elements["player1"];
-              var outline = svg.children.namedItem("player1");
-              advanceTileState(clickType, state, true, outline);
-            break;
-            case PlayerType.P2:
-              var state = form.elements["player2"];
-              var outline = svg.children.namedItem("player2");
-              advanceTileState(clickType, state, false, outline);
-            break;
-            case PlayerType.NONE:
-            break;
-          }
-
-          updateBingos(element.id, playerType);
-        }
-        function advanceTileState(clickType, state, isPlayer1, outline) {
-          var svgHref = document.createAttribute("href");
-
-          switch (clickType) {
-            case ClickType.NORMAL:
-              switch (state.value) {
-                case BingoStates.GOAL_NOT_MET:
-                  state.value = BingoStates.GOAL_MET;
-                  svgHref.value = (player1 ? "#p1-goal-met" : "#p2-goal-met");
-                break;
-                case BingoStates.GOAL_MET:
-                  state.value = BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;
-                  svgHref.value = (player1 ? "#p1-goal-cannot-be-met" : "#p2-goal-cannot-be-met");
-                break;
-                case BingoStates.GOAL_CANNOT_BE_MET_ANYMORE:
-                  state.value = BingoStates.GOAL_NOT_MET;
-                  svgHref.value = "#empty";
-                break;
-              }
-            break;
-            case ClickType.CONTROL:
-              if (state.value == BingoStates.GOAL_MET) {
-                state.value = BingoStates.GOAL_NOT_MET;
-                svgHref.value = "#empty";
-              } else {
-                state.value = BingoStates.GOAL_MET;
-                svgHref.value = (player1 ? "#p1-goal-met" : "#p2-goal-met");
-              }
-            break;
-            case ClickType.SHIFT:
-              if (state.value == BingoStates.GOAL_CANNOT_BE_MET_ANYMORE) {
-                state.value = BingoStates.GOAL_NOT_MET;
-                svgHref.value = "#empty";
-              } else {
-                state.value = BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;
-                svgHref.value = (player1 ? "#p1-goal-cannot-be-met" : "#p2-goal-cannot-be-met");
-              }
-            break;
-          }
-
-          outline.attributes.setNamedItem(svgHref);
-        }
-
-        function updateBingos(tileId, player) {
-          tileNumber = parseInt(tileId.substring("tile-".length));
-          column = tileNumber % BingoTypes.COLUMN;
-          row = Math.floor(tileNumber / BingoTypes.COLUMN);
-
-          updateBingo(BingoTypes.ROW * column, BingoTypes.COLUMN, player, tileNumber);
-          updateBingo(BingoTypes.COLUMN * row, BingoTypes.ROW, player, tileNumber);
-          if (row == column) {
-            updateBingo(0, BingoTypes.TL_BR, player, tileNumber);
-          }
-          if ((row + column) == BingoTypes.TL_BR) {
-            // row and column are each offset by 1, 1..5 instead of 0..4, so (BingoSize + 1) instead of (BingoSize - 1)
-            updateBingo(BingoTypes.TR_BL, BingoTypes.TR_BL, player, tileNumber)
-          }
-        }
-        function updateBingo(start, delta, player, tileNumber) {
-          var newStatus = getNewBorderStatus(start, delta, player);
-          var outlineName = getOutlineName(newStatus, delta, player);
-          var borderId = getBorderId(delta, player, tileNumber)
-
-          updateBorderOutline(borderId, outlineName);
-        }
-
-        function getNewBorderStatus (start, delta, player) {
-          var notMet = false;
-          var cannotBeMet = false;
-
-          var counter = 0;
-          var tileNumberLoop = start;
-          while ((counter < BingoSize) && (!notMet || !cannotBeMet)) {
-            var workingTile = document.getElementById("tile-" + tileNumberLoop);
-            var status = getBingoStatus(workingTile, player)
-            if (status == BingoStates.GOAL_CANNOT_BE_MET_ANYMORE) {
-              cannotBeMet = true;
-            } else if (status == BingoStates.GOAL_NOT_MET) {
-              notMet = true;
-            }
-
-            counter++;
-            tileNumberLoop += delta;
-          }
-
-          if (cannotBeMet) {
-            return BingoStates.GOAL_CANNOT_BE_MET_ANYMORE;
-          } else if (notMet) {
-            return BingoStates.GOAL_NOT_MET;
-          } else {
-            return BingoStates.GOAL_MET;
-          }
-        }
-        function getBingoStatus(element, player) {
-          var parentDiv = element.children.namedItem("parent-div");
-          var stateDiv = parentDiv.children.namedItem("state-div");
-
-          var form = stateDiv.children.namedItem("form");
-          switch (player) {
-            case PlayerType.P1:
-              return form.elements["player1"].value;
-            break;
-            case PlayerType.P2:
-              return form.elements["player2"].value;
-            break;
-            case PlayerType.NONE:
-              return -1;
-          }
-        }
-
-        function getOutlineName(newStatus, delta, player) {
-          var outlineName = "#empty";
-          if (newStatus != BingoStates.GOAL_NOT_MET) {
-            var borderType;
-            switch (delta) {
-              case BingoTypes.ROW: borderType = "row";
-              break;
-              case BingoTypes.COLUMN: borderType = "column";
-              break;
-              case BingoTypes.TL_BR:
-              case BingoTypes.TR_BL:
-                borderType = "diagonal";
-              break;
-            }
-
-            var borderColor;
-            switch (newStatus) {
-              case BingoStates.GOAL_MET:
-                if (player == PlayerType.P1) {
-                  borderColor = "p1";
-                } else if (player == PlayerType.P2) {
-                  borderColor = "p2";
-                }
-              break;
-              case BingoStates.GOAL_CANNOT_BE_MET_ANYMORE:
-                borderColor = "restricted";
-              break;
-            }
-
-            outlineName = "#" + borderType + "-" + borderColor;
-          }
-
-          return outlineName;
-        }
-
-        function getBorderId(delta, player, tileNumber) {
-          if (PlayerType.NONE == player) {
-            return -1; // this should never happen
-          }
-          switch (delta) {
-            case BingoTypes.COLUMN:
-              column = 1 + (tileNumber % BingoSize);
-              if (PlayerType.P1 == player) {
-                return (1 * BingoTypes.TL_BR) + column;
-              } else { // PlayerType.P2
-                return (4 * BingoTypes.TL_BR) - column;
-              }
-            case BingoTypes.ROW:
-              row = 1 + Math.floor(tileNumber / BingoSize);
-              if (PlayerType.P1 == player) {
-                return (1 * BingoTypes.TL_BR) - row;
-              } else { // PlayerType.P2
-                return (2 * BingoTypes.TL_BR) + row;
-              }
-            case BingoTypes.TR_BL:
-              if (PlayerType.P1 == player) {
-                return (0 * BingoTypes.TL_BR);
-              } else { // PlayerType.P2
-                return (2 * BingoTypes.TL_BR);
-              }
-            case BingoTypes.TL_BR:
-              if (PlayerType.P1 == player) {
-                return (1 * BingoTypes.TL_BR);
-              } else { // PlayerType.P2
-                return (3 * BingoTypes.TL_BR);
-              }
-          }
-        }
-
-        function updateBorderOutline (borderId, outlineName) {
-          var borderTile = document.getElementById("border-" + borderId);
-          var parentDiv = borderTile.children.namedItem("parent-div");
-          var svgsDiv = parentDiv.children.namedItem("outline-div");
-          var svg = svgsDiv.children.namedItem("outline");
-          var outline = svg.children.namedItem("bingo");
-
-          var svgHref = document.createAttribute("href");
-          svgHref.value = outlineName;
-          outline.attributes.setNamedItem(svgHref);
-        }
-      </script>
+    <title>Advanced Bingo Card</title>
+    <link rel="stylesheet" type="text/css" href="bingo-card.css">
+    <script src="bingo-card.js"></script>
   </head>
-  <body class="background">
+  <body>
     <svg class="not-visible">
       <defs>
         <polygon id="empty" points="" />
 
-        <polygon id="column-p1" class="border-column outline required" points="2,2 94,2 94,22 2,22" />
-        <polygon id="column-p2" class="border-column outline required" points="2,2 94,2 94,22 2,22" />
-        <polygon id="column-restricted" class="border-column outline restricted" points="2,2 94,2 94,22 2,22" />
+        <polygon id="column-captured" class="border-column outline required" points="2,2 126,2 126,30 2,30" />
+        <polygon id="column-restricted" class="border-column outline restricted" points="2,2 126,2 126,30 2,30" />
 
-        <polygon id="diagonal-p1" class="border-diagonal outline required" points="2,2 22,2 22,22 2,22" />
-        <polygon id="diagonal-p2" class="border-diagonal outline required" points="2,2 22,2 22,22 2,22" />
-        <polygon id="diagonal-restricted" class="border-diagonal outline restricted" points="2,2 22,2 22,22 2,22" />
+        <polygon id="diagonal-captured" class="border-diagonal outline required" points="2,2 30,2 30,30 2,30" />
+        <polygon id="diagonal-restricted" class="border-diagonal outline restricted" points="2,2 30,2 30,30 2,30" />
 
-        <polygon id="row-p1" class="border-row outline required" points="2,2 22,2 22,94 2,94" />
-        <polygon id="row-p2" class="border-row outline required" points="2,2 22,2 22,94 2,94" />
-        <polygon id="row-restricted" class="border-row outline restricted" points="2,2 22,2 22,94 2,94" />
+        <polygon id="row-captured" class="border-row outline required" points="2,2 30,2 30,126 2,126" />
+        <polygon id="row-restricted" class="border-row outline restricted" points="2,2 30,2 30,126 2,126" />
 
-        <polygon id="p1-goal-met" class="bingo-tile outline captured-p1" points="2,2 90,2 2,90" />
-        <polygon id="p1-goal-cannot-be-met" class="bingo-tile outline restricted" points="2,2 90,2 2,90 2,2 46,46" />
+        <polygon id="p1-goal-met" class="bingo-tile outline captured-p1" points="2,2 122,2 2,122" />
+        <path id="p1-goal-cannot-be-met" class="bingo-tile outline restricted" d="M2,2 l60,60 M122,2 h-120 v120 Z" />
 
-        <polygon id="p2-goal-met" class="bingo-tile outline captured-p2" points="94,94 6,94 94,6" />
-        <polygon id="p2-goal-cannot-be-met" class="bingo-tile outline restricted" points="94,94 6,94 94,6 94,94 50,50" />
+        <polygon id="p2-goal-met" class="bingo-tile outline captured-p2" points="126,126 6,126 126,6" />
+        <path id="p2-goal-cannot-be-met" class="bingo-tile outline restricted" d="M126,126 l-60,-60 M6,126 h120 v-120 Z" />
       </defs>
     </svg>
 
     <table>
       <tr>
-          <th id="border-6" class="border-diagonal border-default-p1" title="P1 TL-BR" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-6" class="border-diagonal border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
@@ -468,13 +38,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-diagonal child-div">
-                <svg id="outline" width="24px" height="24px">
+                <svg id="outline" width="32px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-7" class="border-column border-default-p1" title="P1 C1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-7" class="border-column border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -482,13 +52,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-8" class="border-column border-default-p1" title="P1 C2" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-8" class="border-column border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -496,13 +66,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-9" class="border-column border-default-p1" title="P1 C3" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-9" class="border-column border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -510,13 +80,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-10" class="border-column border-default-p1" title="P1 C4" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-10" class="border-column border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -524,13 +94,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-11" class="border-column border-default-p1" title="P1 C5" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-11" class="border-column border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -538,13 +108,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-12" class="border-diagonal border-default-p2" title="P2 TR-BL" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-12" class="border-diagonal border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
@@ -552,7 +122,7 @@
                 </form>
               </div>
               <div id="outline-div" class="border-diagonal child-div">
-                <svg id="outline" width="24px" height="24px">
+                <svg id="outline" width="32px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
@@ -560,7 +130,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-5" class="border-row border-default-p1" title="P1 R1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-5" class="border-row border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -568,14 +138,14 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
           <!-- r1-c1 -->
-           <td id="tile-0" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-0" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -584,7 +154,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -593,7 +163,7 @@
             </div>
           </td>
           <!-- r1-c2 -->
-           <td id="tile-1" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-1" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -602,7 +172,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -611,7 +181,7 @@
             </div>
           </td>
           <!-- r1-c3 -->
-           <td id="tile-2" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-2" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -620,7 +190,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -629,7 +199,7 @@
             </div>
           </td>
           <!-- r1-c4 -->
-           <td id="tile-3" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-3" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -638,7 +208,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -647,7 +217,7 @@
             </div>
           </td>
           <!-- r1-c5 -->
-           <td id="tile-4" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-4" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -656,7 +226,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -664,7 +234,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R1 C5</div>
             </div>
           </td>
-          <th id="border-13" class="border-row border-default-p2" title="P2 R1" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-13" class="border-row border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -672,7 +242,7 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
@@ -680,7 +250,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-4" class="border-row border-default-p1" title="P1 R2" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-4" class="border-row border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -688,14 +258,14 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
           <!-- r2-c1 -->
-           <td id="tile-5" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-5" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -704,7 +274,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -713,7 +283,7 @@
             </div>
           </td>
           <!-- r2-c2 -->
-           <td id="tile-6" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-6" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -722,7 +292,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -731,7 +301,7 @@
             </div>
           </td>
           <!-- r2-c3 -->
-           <td id="tile-7" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-7" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -740,7 +310,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -749,7 +319,7 @@
             </div>
           </td>
           <!-- r2-c4 -->
-           <td id="tile-8" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-8" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -758,7 +328,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -767,7 +337,7 @@
             </div>
           </td>
           <!-- r2-c5 -->
-           <td id="tile-9" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-9" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -776,7 +346,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -784,7 +354,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R2 C5</div>
             </div>
           </td>
-          <th id="border-14" class="border-row border-default-p2" title="P2 R2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-14" class="border-row border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -792,7 +362,7 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
@@ -800,7 +370,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-3" class="border-row border-default-p1" title="P1 R3" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-3" class="border-row border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -808,14 +378,14 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
           <!-- r3-c1 -->
-           <td id="tile-10" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-10" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -824,7 +394,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -833,7 +403,7 @@
             </div>
           </td>
           <!-- r3-c2 -->
-           <td id="tile-11" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-11" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -842,7 +412,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -851,7 +421,7 @@
             </div>
           </td>
           <!-- r3-c3 -->
-           <td id="tile-12" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-12" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -860,7 +430,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -869,7 +439,7 @@
             </div>
           </td>
           <!-- r3-c4 -->
-           <td id="tile-13" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-13" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -878,7 +448,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -887,7 +457,7 @@
             </div>
           </td>
           <!-- r3-c5 -->
-           <td id="tile-14" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-14" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -896,7 +466,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -904,7 +474,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R3 C5</div>
             </div>
           </td>
-          <th id="border-15" class="border-row border-default-p2" title="P2 R3" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-15" class="border-row border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -912,7 +482,7 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
@@ -920,7 +490,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-2" class="border-row border-default-p1" title="P1 R4" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-2" class="border-row border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -928,14 +498,14 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
           <!-- r4-c1 -->
-           <td id="tile-15" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-15" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -944,7 +514,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -953,7 +523,7 @@
             </div>
           </td>
           <!-- r4-c2 -->
-           <td id="tile-16" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-16" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -962,7 +532,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -971,7 +541,7 @@
             </div>
           </td>
           <!-- r4-c3 -->
-           <td id="tile-17" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-17" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -980,7 +550,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -989,7 +559,7 @@
             </div>
           </td>
           <!-- r4-c4 -->
-           <td id="tile-18" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-18" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -998,7 +568,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -1007,7 +577,7 @@
             </div>
           </td>
           <!-- r4-c5 -->
-           <td id="tile-19" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-19" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -1016,7 +586,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -1024,7 +594,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R4 C5</div>
             </div>
           </td>
-          <th id="border-16" class="border-row border-default-p2" title="P2 R4" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-16" class="border-row border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -1032,7 +602,7 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
@@ -1040,7 +610,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-1" class="border-row border-default-p1" title="P1 R5" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-1" class="border-row border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -1048,14 +618,14 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
           <!-- r5-c1 -->
-           <td id="tile-20" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-20" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -1064,7 +634,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -1073,7 +643,7 @@
             </div>
           </td>
           <!-- r5-c2 -->
-           <td id="tile-21" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-21" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -1082,7 +652,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -1091,7 +661,7 @@
             </div>
           </td>
           <!-- r5-c3 -->
-           <td id="tile-22" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-22" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -1100,7 +670,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -1109,7 +679,7 @@
             </div>
           </td>
           <!-- r5-c4 -->
-           <td id="tile-23" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-23" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -1118,7 +688,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -1127,7 +697,7 @@
             </div>
           </td>
           <!-- r5-c5 -->
-           <td id="tile-24" class="bingo-tile bingo-tile-background" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
+           <td id="tile-24" class="bingo-tile" onclick="clickBingoTile(this, event)" onmouseenter="mouseBingoTile(this, event)" onmousemove="mouseBingoTile(this, event)" onmouseleave="mouseBingoTile(this, event)">
             <div id="parent-div" class="bingo-tile">
               <div id="state-div"  class="bingo-tile child-div">
                 <form id="form"  class="not-visible">
@@ -1136,7 +706,7 @@
                 </form>
               </div>
               <div id="outlines-div" class="bingo-tile child-div">
-                <svg id="outlines" width="96px" height="96px">
+                <svg id="outlines" width="128px" height="128px">
                   <use id="player1" href="#empty" />
                   <use id="player2" href="#empty" />
                 </svg>
@@ -1144,7 +714,7 @@
               <div id="text-div" class="bingo-tile child-div bingo-tile-text">R5 C5</div>
             </div>
           </td>
-          <th id="border-17" class="border-row border-default-p2" title="P2 R5" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-17" class="border-row border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-row">
               <div id="state-div"  class="border-row child-div">
                 <form id="form"  class="not-visible">
@@ -1152,7 +722,7 @@
                 </form>
               </div>
               <div id="outline-div" class="border-row child-div">
-                <svg id="outline" width="24px" height="96px">
+                <svg id="outline" width="32px" height="128px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
@@ -1160,7 +730,7 @@
           </th>
       </tr>
       <tr>
-          <th id="border-0" class="border-diagonal border-default-p1" title="P1 TR-BL" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-0" class="border-diagonal border-default-p1" onclick="clickBorderTile(this, 'p1')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
@@ -1168,13 +738,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-diagonal child-div">
-                <svg id="outline" width="24px" height="24px">
+                <svg id="outline" width="32px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-23" class="border-column border-default-p2" title="P2 C1" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-23" class="border-column border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1182,13 +752,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-22" class="border-column border-default-p2" title="P2 C2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-22" class="border-column border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1196,13 +766,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-21" class="border-column border-default-p2" title="P2 C3" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-21" class="border-column border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1210,13 +780,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-20" class="border-column border-default-p2" title="P2 C4" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-20" class="border-column border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1224,13 +794,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-19" class="border-column border-default-p2" title="P2 C5" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-19" class="border-column border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-column">
               <div id="state-div"  class="border-column child-div">
                 <form id="form"  class="not-visible">
@@ -1238,13 +808,13 @@
                 </form>
               </div>
               <div id="outline-div" class="border-column child-div">
-                <svg id="outline" width="96px" height="24px">
+                <svg id="outline" width="128px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
             </div>
           </th>
-          <th id="border-18" class="border-diagonal border-default-p2" title="P2 TL-BR" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
+          <th id="border-18" class="border-diagonal border-default-p2" onclick="clickBorderTile(this, 'p2')" onmouseenter="mouseBorderTile(this, true)" onmouseleave="mouseBorderTile(this, false)">
             <div id="parent-div" class="border-diagonal">
               <div id="state-div"  class="border-diagonal child-div">
                 <form id="form"  class="not-visible">
@@ -1252,7 +822,7 @@
                 </form>
               </div>
               <div id="outline-div" class="border-diagonal child-div">
-                <svg id="outline" width="24px" height="24px">
+                <svg id="outline" width="32px" height="32px">
                   <use id="bingo" href="#empty" />
                 </svg>
               </div>
