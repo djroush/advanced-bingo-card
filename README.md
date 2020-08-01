@@ -1,2 +1,2 @@
-# bingo-card-poc
-A proof of concept for a bingo card with some advanced functionality
+# advanced-bingo-card
+A bingo card implementation with some advanced functionality
