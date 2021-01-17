@@ -10,9 +10,9 @@ Object.freeze(ClickType);
 
 const PlayerType = { NONE : "0", P1 : "1", P2 : "2" };
 Object.freeze(PlayerType);
-const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(80, 0, 112, 0.375)" };
+const Player1Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(0, 112, 48, 0.375)" };
 Object.freeze(Player1Colors);
-const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(0, 112, 48, 0.375)" };
+const Player2Colors = { DEFAULT : "rgba(0, 0, 0, 1)", HIGHLIGHT : "rgba(80, 0, 112, 0.375)" };
 Object.freeze(Player2Colors);
 function classifyClick(event) {
   if (event.ctrlKey) {

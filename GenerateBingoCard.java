@@ -19,8 +19,8 @@ public class GenerateBingoCard {
   private static final long COLOR_BACKGROUND = 0x505050;
   private static final long COLOR_BINGO_TILE = 0x000000;
   private static final long COLOR_BINGO_TILE_TEXT = 0xC0A000;
-  private static final long COLOR_P1 = 0x500070;
-  private static final long COLOR_P2 = 0x007030;
+  private static final long COLOR_P1 = 0x007030;
+  private static final long COLOR_P2 = 0x500070;
   private static final long COLOR_RESTRICTED = 0xE00000;
 
   private static final String HIGHLIGHT_OPACITY = "0.375";
@@ -80,7 +80,7 @@ public class GenerateBingoCard {
     cssOutput.append("  stroke: #" + String.format("%06X", COLOR_P2) + ";\n");
     cssOutput.append("}\n");
     cssOutput.append(".required {\n");
-    cssOutput.append("  stroke: #" + String.format("%06X", COLOR_BACKGROUND) + ";\n");
+    cssOutput.append("  stroke: #" + String.format("%06X", COLOR_BINGO_TILE) + ";\n");
     cssOutput.append("}\n");
     cssOutput.append(".restricted {\n");
     cssOutput.append("  stroke: #" + String.format("%06X", COLOR_RESTRICTED) + ";\n");
@@ -119,11 +119,11 @@ public class GenerateBingoCard {
   private static void generateBorderTilePlayersRequired(StringBuffer cssOutput) {
     cssOutput.append(".border-required-p1 {\n");
     cssOutput.append(String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_P1, COLOR_P1, COLOR_BACKGROUND, COLOR_P1, COLOR_P1));
+      COLOR_P1, COLOR_P1, COLOR_BINGO_TILE, COLOR_P1, COLOR_P1));
     cssOutput.append("}\n");
     cssOutput.append(".border-required-p2 {\n");
     cssOutput.append(String.format("  background: radial-gradient(circle at center, #%06X 0px, #%06X 4px, #%06X 7px, #%06X 10px, #%06X 100%%);\n",
-      COLOR_P2, COLOR_P2, COLOR_BACKGROUND, COLOR_P2, COLOR_P2));
+      COLOR_P2, COLOR_P2, COLOR_BINGO_TILE, COLOR_P2, COLOR_P2));
     cssOutput.append("}\n");
   }
 
